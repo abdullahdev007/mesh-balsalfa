@@ -2,7 +2,7 @@ import { Player } from "./entities/Player";
 import { Topic } from "./entities/Topic";
 import { TopicCategory } from "./entities/TopicCategory";
 import { Round } from "./entities/Round";
-// استيراد المواضيع الافتراضية من ملف JSON
+
 import defaultTopicsData from "./defaultTopics.json";
 
 export class Game {
