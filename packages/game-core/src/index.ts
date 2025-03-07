@@ -1,8 +1,8 @@
-import { Player } from "./entities/Player";
+import { GamePlayer } from "./entities/Player";
 import { Round } from "./entities/Round";
 import { Topic } from "./entities/Topic";
 import { TopicCategory } from "./entities/TopicCategory";
-import { Game } from "./Game";
+import Game  from "./Game";
 
 export * from "./Game";
 export * from "./entities/Player";
@@ -12,10 +12,10 @@ export * from "./entities/Round";
 
 const game = new Game();
 
-const ali: Player = game.addPlayer("ali");
-const ahmed: Player = game.addPlayer("ahmed");
-const abdullah: Player = game.addPlayer("abdullah");
-const noor: Player = game.addPlayer("noor");
+const ali: GamePlayer = game.addPlayer("ali");
+const ahmed: GamePlayer = game.addPlayer("ahmed");
+const abdullah: GamePlayer = game.addPlayer("abdullah");
+const noor: GamePlayer = game.addPlayer("noor");
 
 // Testing Topic Code
 /*
@@ -48,10 +48,10 @@ console.log("--------------------");
 
 round.startVoting();
 
-round.vote(noor)
-round.vote(ahmed)
-round.vote(ali)
-round.vote(noor)
+round.vote(noor);
+round.vote(ahmed);
+round.vote(ali);
+round.vote(noor);
 
 console.log("--------------------");
 

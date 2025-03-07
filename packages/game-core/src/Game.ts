@@ -1,12 +1,12 @@
-import { Player } from "./entities/Player";
+import { GamePlayer } from "./entities/Player";
 import { Topic } from "./entities/Topic";
 import { TopicCategory } from "./entities/TopicCategory";
 import { Round } from "./entities/Round";
 
 import defaultTopicsData from "./defaultTopics.json";
 
-export class Game {
-  players: Player[] = [];
+export default class Game {
+  players: GamePlayer[] = [];
   topics: Topic[] = [];
   rounds: Round[] = [];
 
@@ -14,9 +14,9 @@ export class Game {
     this.initializeDefaultTopics(defaultTopicsData);
   }
 
-  addPlayer(name: string): Player {
+  addPlayer(name: string): GamePlayer {
     const id = this.generateId();
-    const player = new Player(id, name);
+    const player = new GamePlayer(id, name);
     this.players.push(player);
     return player;
   }
@@ -90,7 +90,7 @@ export class Game {
     return this.topics[index]!;
   }
 
-  private getRandomPlayer(): Player {
+  private getRandomPlayer(): GamePlayer {
     const index = Math.floor(Math.random() * this.players.length);
     return this.players[index]!;
   }

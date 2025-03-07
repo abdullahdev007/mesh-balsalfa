@@ -1,5 +1,5 @@
 import { log } from "console";
-import { Player, PlayerState } from "./Player";
+import { GamePlayer, PlayerState } from "./Player";
 import { Topic } from "./Topic";
 
 enum RoundPhase {
@@ -12,7 +12,7 @@ enum RoundPhase {
 }
 
 export class Round {
-  private players: Player[];
+  private players: GamePlayer[];
   private currentIndex: number = 0;
   private playerStates: Map<string, PlayerState>;
   private phase: RoundPhase = RoundPhase.ROLE_DISTRIBUTION;
@@ -20,8 +20,8 @@ export class Round {
   constructor(
     public id: string,
     public topic: Topic,
-    public spy: Player,
-    players: Player[]
+    public spy: GamePlayer,
+    players: GamePlayer[]
   ) {
     this.players = this.shuffleArray(players);
     this.playerStates = new Map(
@@ -32,18 +32,18 @@ export class Round {
     );
   }
 
-  private shuffleArray(array: Player[]): Player[] {
+  private shuffleArray(array: GamePlayer[]): GamePlayer[] {
     return array.sort(() => Math.random() - 0.5);
   }
 
-  private getPlayerState(player: Player): PlayerState | undefined {
+  private getPlayerState(player: GamePlayer): PlayerState | undefined {
     return this.playerStates.get(player.id);
   }
 
   giveRole() {
     if (this.phase !== RoundPhase.ROLE_DISTRIBUTION) return;
 
-    const currentPlayer: Player = this.players[this.currentIndex]!;
+    const currentPlayer: GamePlayer = this.players[this.currentIndex]!;
 
     console.log(
       `${currentPlayer.name} ${currentPlayer.id === this.spy.id ? `you are a spy` : `the topic is : ${this.topic.name} 📖`}`
@@ -65,8 +65,8 @@ export class Round {
     )
       return;
 
-    const asker: Player = this.players[this.currentIndex]!;
-    const target: Player =
+    const asker: GamePlayer = this.players[this.currentIndex]!;
+    const target: GamePlayer =
       this.players[this.currentIndex + 1]! ?? this.players[0]!;
 
     const askerState: PlayerState = this.getPlayerState(asker)!;
@@ -87,16 +87,16 @@ export class Round {
   startVoting() {
     this.currentIndex =
       this.currentIndex === 0 ? this.players.length - 1 : this.currentIndex - 1;
-    const votingStarterPlayer: Player = this.players[this.currentIndex]!;
+    const votingStarterPlayer: GamePlayer = this.players[this.currentIndex]!;
 
     console.log(`${votingStarterPlayer.name} starting vote phase 🗃️`);
     this.phase = RoundPhase.VOTING;
   }
 
-  vote(candidate: Player): void {
+  vote(candidate: GamePlayer): void {
     if (this.phase !== RoundPhase.VOTING) return;
 
-    const voter: Player = this.players[this.currentIndex]!;
+    const voter: GamePlayer = this.players[this.currentIndex]!;
     const voterState: PlayerState = this.getPlayerState(voter)!;
 
     const candidateState: PlayerState = this.getPlayerState(candidate)!;
@@ -166,8 +166,9 @@ export class Round {
     this.playerStates.forEach((playerState: PlayerState) => {
       playerState.player.score += playerState.score;
 
-      console.log(`${playerState.player.name} total score is ${playerState.player.score}`);
-      
+      console.log(
+        `${playerState.player.name} total score is ${playerState.player.score}`
+      );
     });
   }
 }
