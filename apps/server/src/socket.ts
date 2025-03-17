@@ -13,7 +13,6 @@ export const setupSocket = (io: Server) => {  // Explicitly define io as Server
         handleRoomEvents(io,socket ,gameManager)
         socket.on("disconnect", () => {
             gameManager.removePlayer(socket.id);
-            console.log(`Player disconnected: ${socket.id}`);
         });
     });
 };

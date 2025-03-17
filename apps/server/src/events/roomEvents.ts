@@ -9,7 +9,7 @@ export const handleRoomEvents = (
   socket: Socket,
   gameManager: GameManager
 ) => {
-  const roomsManager: RoomsManager = gameManager.roomsManaer;
+  const roomsManager: RoomsManager = gameManager.roomsManager;
 
   socket.on("createRoom", () => {
     const admin: Player | null = gameManager.getPlayerBySocketId(socket.id);

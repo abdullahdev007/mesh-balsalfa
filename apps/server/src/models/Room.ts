@@ -1,10 +1,14 @@
 import Player from "./Player";
 import { customAlphabet } from "nanoid";
+import { Game, Round } from "@repo/game-core";
+import RoundManager from "../managers/RoundManager";
 
 export default class Room {
   public players: Player[] = [];
   public id: string;
   public admin: Player;
+  public game: Game = new Game();
+  public roundManager: RoundManager | undefined;
 
   constructor(admin: Player) {
     this.admin = admin;
@@ -14,6 +18,16 @@ export default class Room {
 
     // Create room id
     this.id = this.generateRoomId();
+  }
+
+
+  //start new round method
+  startNewRound(): Round | null {
+    const round = this.game.startRound();
+    if (!round) return null;
+
+    this.roundManager = new RoundManager(this);
+    return round;
   }
 
   // Method for creating room ID (example output: "MN2REC")
@@ -36,9 +50,8 @@ export default class Room {
     }
 
     // Remove player from room
-    this.players = this.players.filter(
-      (player) => player.id !== playerId
-    );
+    this.players = this.players.filter((player) => player.id !== playerId);
+    this.game.removePlayer(playerId);
   }
 
   // Add player to the room
@@ -52,5 +65,6 @@ export default class Room {
 
     // Add player to room
     this.players.push(player);
+    this.game.addPlayer(player.id, player.name);
   }
 }
