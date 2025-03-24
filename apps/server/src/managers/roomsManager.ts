@@ -1,7 +1,6 @@
-import Player from "../models/Player";
-import Room from "../models/Room";
+import { Player, Room } from "../models";
 
-export default class RoomsManager {
+export class RoomsManager {
   public rooms: Room[] = [];
 
   constructor() {}
@@ -23,16 +22,16 @@ export default class RoomsManager {
     try {
       // Find the room
       const room = this.rooms.find((room: Room) => room.id === roomId);
-      
+
       // If room is not found, throw an error
       if (!room) {
         throw new Error(`Room with ID ${roomId} not found`);
       }
-  
+
       // Remove all players from the room and destroy room
       room.players.forEach((player: Player) => player.leaveRoom());
       this.rooms = this.rooms.filter((room: Room) => room.id !== roomId);
-      
+
       console.log(`Room with ID ${roomId} successfully destroyed.`);
 
       return true;

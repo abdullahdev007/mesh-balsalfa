@@ -1,21 +1,34 @@
-import { Player } from "../models";
+import { threadId } from "worker_threads";
+import { Player, Question } from "../models";
 
 export class QuestionSystem {
   private questionOrder: Player[] = [];
   private currentQuestionIndex: number = 0;
+
+  public get thisLastQuestion() {
+    return this.currentQuestionIndex >= this.questionOrder.length;
+  }
+
+  public get getQuestionOrder() {
+    return this.questionOrder;
+  }
 
   public setupQuestionOrder(players: Player[]): void {
     this.questionOrder = this.shuffleArray(players);
     this.currentQuestionIndex = 0;
   }
 
-  public getNextQuestion(): { asker: Player; target: Player } | null {
-    if (this.currentQuestionIndex >= this.questionOrder.length) {
-      return null; 
-    }
+  public getNextQuestion(askerPlayerID: string): Question | undefined {
+    if (this.thisLastQuestion) return;
 
     const asker = this.questionOrder[this.currentQuestionIndex]!;
-    const target = this.questionOrder[(this.currentQuestionIndex + 1) % this.questionOrder.length]!;
+
+    if (asker.id !== askerPlayerID) throw new Error("is not asker player turn");
+
+    const target =
+      this.questionOrder[
+        (this.currentQuestionIndex + 1) % this.questionOrder.length
+      ]!;
 
     this.currentQuestionIndex++;
     return { asker, target };
@@ -25,5 +38,7 @@ export class QuestionSystem {
     return array.sort(() => Math.random() - 0.5);
   }
 
-  public thisLastQuestion = () => this.currentQuestionIndex >= this.questionOrder.length
+  public thisCurrentAsker(playerID: string) {
+    return this.questionOrder[this.currentQuestionIndex]?.id!;
+  }
 }

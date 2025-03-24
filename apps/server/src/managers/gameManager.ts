@@ -1,7 +1,7 @@
-import Player from "../models/Player";
-import RoomsManager from "./roomsManager";
+import { Player } from "../models";
+import { RoomsManager } from ".";
 
-export default class GameManager {
+export class GameManager {
   public players: Player[] = [];
   public roomsManager: RoomsManager = new RoomsManager();
 

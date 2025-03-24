@@ -1,26 +1,37 @@
 import { nanoid } from "nanoid";
-import Room from "./Room";
+import { Room } from ".";
+import { Player as GamePlayer } from '@repo/game-core';
 
-export default class Player {
+export class Player {
   public id: string;
   public room: Room | undefined;
+  public gamePlayer: GamePlayer; // Reference to game-core player
 
   constructor(
     public name: string,
     public socketId: string
   ) {
     this.id = this.generateUserId();
+    this.gamePlayer = this.createGamePlayer();
+  }
+
+  private createGamePlayer(): GamePlayer {
+    return  {
+      id: this.id,
+      name: this.name,
+      role: undefined,
+      score: 0
+    };
   }
 
   private generateUserId(): string {
     return nanoid(8);
   }
 
-
   public isMatchingSocket = (socketId: string): boolean => {
     return this.socketId === socketId;
   };
-  
+
   public joinRoom(newRoom: Room) {
     try {
       //if player already in this room throw error
@@ -32,9 +43,12 @@ export default class Player {
       if (this.room !== undefined) {
         this.leaveRoom();
       }
+
       // join to room
       this.room = newRoom;
       this.room.addPlayer(this);
+
+      
     } catch {
       console.log(`error on join ${this.id} player to ${newRoom.id} room`);
       throw new Error(`error on join player to room`);

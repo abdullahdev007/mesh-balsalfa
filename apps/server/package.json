@@ -10,8 +10,9 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
-    "@repo/typescript-config": "*",
     "@repo/game-core": "*",
+    "@repo/socket-events": "*",
+    "@repo/typescript-config": "*",
     "@types/express": "^5.0.0",
     "dotenv": "^16.4.7",
     "eslint": "^9.19.0",

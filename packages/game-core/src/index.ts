@@ -1,12 +1,5 @@
 import { GameEngine } from "./engine";
-import {
-  GameEvent,
-  GamePhase,
-  GameState,
-  Player,
-  RoundHistory,
-
-} from "./models";
+import { GameEvent, GamePhase, GameState, Player, Round } from "./models";
 
 export * from "./engine";
 export * from "./models";
@@ -16,20 +9,19 @@ export * from "./models";
 
 const gameEngine = new GameEngine();
 
-gameEngine.on(GameEvent.ROUND_STARTED, (round: RoundHistory) => {
+gameEngine.on(GameEvent.ROUND_STARTED, (round: Round) => {
   console.log(`round started`);
   console.log("--------------");
   console.log(`this round topic is ${round.topic.category}`);
 });
 
-gameEngine.on(GameEvent.ROUND_ENDED,(round: RoundHistory) => {
-  console.log('round ended');
+gameEngine.on(GameEvent.ROUND_ENDED, (round: Round) => {
+  console.log("round ended");
   console.log(round);
-  
-})
+});
 
 gameEngine.on(GameEvent.STATE_UPDATED, (state: GameState) => {
-  console.log('state updateed');
+  console.log("state updateed");
   console.log(state);
 });
 
@@ -93,11 +85,10 @@ gameEngine.removePlayer("player5");
 
 gameEngine.startNewRound();
 
-
-const round: RoundHistory = gameEngine.getCurrentRound()!;
+const round: Round = gameEngine.getCurrentRound!;
 const spy: Player = round.spy;
 
-gameEngine.startQuestionRound();
+gameEngine.startQuestionPhase();
 
 gameEngine.askNextQuestion();
 gameEngine.askNextQuestion();
@@ -111,11 +102,10 @@ gameEngine.askFreeQuestion("player1");
 
 gameEngine.startVoting();
 
-
-gameEngine.vote("player1","player3");
-gameEngine.vote("player2","player3");
-gameEngine.vote("player3","player3");
-gameEngine.vote("player4","player3");
+gameEngine.castVote("player1", "player3");
+gameEngine.castVote("player2", "player3");
+gameEngine.castVote("player3", "player3");
+gameEngine.castVote("player4", "player3");
 
 // spy guess correct topic status
-gameEngine.guessTopic(round.topic.id, spy.id)
+gameEngine.guessTopic(round.topic.id, spy.id);

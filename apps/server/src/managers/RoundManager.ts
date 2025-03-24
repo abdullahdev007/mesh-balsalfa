@@ -1,67 +1,64 @@
-import { Round } from "@repo/game-core";
-import Player from "../models/Player";
-import Room from "../models/Room";
+import { Question } from "@repo/game-core";
+import { Player, Room } from "../models";
+import { EventEmitter } from "events";
 
-class RoundManager {
-  public waitingList: Set<Player> = new Set();
-  public round: Round;
-  private timeout: NodeJS.Timeout | undefined;
-  private timeoutPromise: Promise<boolean> | undefined;
-  private resolveTimeout: ((value: boolean) => void) | undefined;
+type WaitingType = "role_assignment" | "voting_phase";
+
+export class RoundManager extends EventEmitter {
+  private waitingLists: Record<WaitingType, Set<Player>> = {
+    role_assignment: new Set(),
+    voting_phase: new Set(),
+  };
+
+  private timers: Record<WaitingType, NodeJS.Timeout | null> = {
+    role_assignment: null,
+    voting_phase: null,
+  };
+
+  private readonly WAITING_DURATIONS: Record<WaitingType, number> = {
+    role_assignment: 35_000,
+    voting_phase: 30_000,
+  };
+
+  private questionList: Set<Question> = new Set();
 
   constructor(public room: Room) {
-    this.round = this.room.game.currentRound!;
- 
-    if (this.round == undefined) {
-      throw Error("no round is available on creating RoundManager");
+    super();
+  }
+
+  public checkInWaitingList = (
+    player: Player,
+    listType: WaitingType
+  ): boolean => this.waitingLists[listType].has(player);
+
+  public hasTimer = (timerType: WaitingType): boolean =>
+    this.timers[timerType] !== null;
+
+  public addToWaitingList(player: Player, waitingType: WaitingType) {
+    if (this.checkInWaitingList(player, waitingType)) return;
+
+    this.waitingLists[waitingType].add(player);
+    console.log(
+      `[RoundManager] Player ${player.id} added to ${waitingType} waiting list.`
+    );
+
+    // Start the timer only if it's not already running
+    if (!this.hasTimer(waitingType)) {
+      this.startWaitingTimer(waitingType);
     }
   }
 
-  addPlayerToWaitingList(player: Player) {
-    try {
-      if (this.waitingList.has(player)) {
-        throw Error("This player is already in the waiting list");
-      }
+  private startWaitingTimer(waitingType: WaitingType) {
+    console.log(`[RoundManager] Starting ${waitingType} waiting timer...`);
 
-      this.waitingList.add(player);
+    this.timers[waitingType] = setTimeout(() => {
+      this.emit(`${waitingType}_done`, this.room);
+      console.log(`[RoundManager] ${waitingType} waiting time expired!`);
 
-      const waitingListComplete: boolean = this.waitingList.size === this.round.players.length;
-
-      if (waitingListComplete) this.waitingList.clear();
-
-      return waitingListComplete;
-    } catch (error) {
-      console.log("Error adding player to waiting list", error);
-      throw error;
-    }
+      // Clear waiting list after processing
+      this.waitingLists[waitingType].clear();
+      this.timers[waitingType] = null;
+    }, this.WAITING_DURATIONS[waitingType]);
   }
-
-  startTimeout(duration: number): Promise<boolean> {
-    if (this.timeout) {
-      return this.timeoutPromise!;
-    }
-
-    this.timeoutPromise = new Promise<boolean>((resolve) => {
-      this.resolveTimeout = resolve;
-      this.timeout = setTimeout(() => {
-        this.resolveTimeout?.(true); // Resolve true when timeout completes
-        this.clearTimeout();
-      }, duration);
-    });
-
-    return this.timeoutPromise;
-  }
-
-  clearTimeout() {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = undefined;
-      this.resolveTimeout?.(false); // Resolve false if timeout is cleared early
-      this.resolveTimeout = undefined;
-    }
-  }
-
 
 }
-
-export default RoundManager;

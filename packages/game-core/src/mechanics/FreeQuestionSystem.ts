@@ -1,4 +1,4 @@
-import { Player } from "../models";
+import { Player, Question } from "../models";
 
 export class FreeQuestionSystem {
   private players: Player[] = [];
@@ -9,17 +9,22 @@ export class FreeQuestionSystem {
     this.currentAskerIndex = 0;
   }
 
-  // الحصول على السؤال التالي
+
   public getNextQuestion(
-    targetPlayerId: string
-  ): { asker: Player; target: Player } | null {
+    askerPlayerID: string,
+    targetPlayerID: string
+  ): Question | null {
     if (this.players.length === 0) {
       throw new Error("No players available");
     }
 
-
     const asker : Player = this.players[this.currentAskerIndex]!;
-    const target : Player = this.players.find((p) => p.id === targetPlayerId)!;
+    
+    if(asker.id !== askerPlayerID) {
+      throw new Error("is not asker player turn")
+    }
+
+    const target : Player = this.players.find((p) => p.id === targetPlayerID)!;
 
     if (!target) {
       throw new Error("target player not found");

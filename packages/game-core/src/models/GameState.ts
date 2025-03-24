@@ -5,38 +5,42 @@ export interface GameState {
   players: Player[];
   currentRound: number;
   totalRounds: number;
-  rounds: RoundHistory[];
+  rounds: Round[];
   totalScores: ScoreEntry[];
   phase: GamePhase;
   selectedTopicCategory: TopicCategory | undefined;
 }
 
-
-export interface RoundHistory {
+export interface Round {
   roundNumber: number;
   topic: Topic;
-  topicCategory: TopicCategory,
-  spy: Player
-  players: Player[]
+  topicCategory: TopicCategory;
+  spy: Player;
+  players: Player[];
   votes: VoteResult[];
   scores: ScoreEntry[];
   guessedTopic: Topic | null;
 }
 
+export interface Question {
+  asker: Player;
+  target: Player;
+}
+
 export interface VoteResult {
-  voterID: string,
-  suspectID: string
+  voterID: string;
+  suspectID: string;
 }
 
 export interface ScoreEntry {
-  playerID: string,
-  score: number
+  playerID: string;
+  score: number;
 }
 
 export type GamePhase =
   | "lobby"
   | "role-assignment"
-  | "question-round"
-  | "free-question-round"
+  | "questions-phase"
+  | "free-questions-phase"
   | "voting"
   | "guess-topic";
