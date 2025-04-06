@@ -1,0 +1,37 @@
+footer.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  .developer {
+    font-size: 0.7rem;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    a {
+      color: $primary-color;
+      opacity: 0.8;
+      text-decoration: none;
+
+      &:hover {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+    }
+  }
+
+  @media (max-width: 600px) {
+    .developer {
+      font-size: 0.5rem;
+    }
+  }
+
+  @media (max-width: 300px) {
+    flex-direction: column-reverse;
+    justify-content: center;
+    align-items: center;
+
+    margin-bottom: 10px;
+  }
+}

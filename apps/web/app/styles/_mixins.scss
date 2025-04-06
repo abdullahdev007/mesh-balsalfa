@@ -1,0 +1,7 @@
+@mixin theme-color($property, $light, $dark) {
+  #{$property}: $light;
+
+  :root.dark & {
+    #{$property}: $dark;
+  }
+}

@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
+
 import "./styles/global.scss";
+
 import '@fontsource/rubik';
+
+import { ThemeProvider } from "./context/ThemeContext";
+
+import 'react-tooltip/dist/react-tooltip.css'
+import Footer from "./components/footer/footer";
 
 
 
@@ -15,9 +22,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ar">
       <body>
-        {children}
+        <ThemeProvider>
+
+          <div className="main">{children}</div>
+          
+          
+          <Footer />
+        </ThemeProvider>
+
+
       </body>
     </html>
   );

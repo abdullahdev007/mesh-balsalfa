@@ -1,0 +1,51 @@
+/* From Uiverse.io by cuzpq */
+$toggle-size-lg: 9px;
+$toggle-size-sm: 5px;
+$light-color: #efefef;
+$dark-color: #2a2a2a;
+
+.themeToggle {
+  .themeCheckbox {
+    appearance: none;
+    width: 6.25em;
+    height: 3.125em;
+    background: linear-gradient(to right, $light-color 50%, $dark-color 50%)
+      no-repeat;
+    background-size: 205%;
+    background-position: 0;
+    transition: 0.4s;
+    border-radius: 99em;
+    position: relative;
+    cursor: pointer;
+    font-size: $toggle-size-lg;
+
+
+    @media (max-width: 600px) {
+      font-size: $toggle-size-sm;
+    }
+    
+    &::before {
+      content: "";
+      width: 2.25em;
+      height: 2.25em;
+      position: absolute;
+      top: 0.438em;
+      left: 0.438em;
+      background: linear-gradient(to right, $light-color 50%, $dark-color 50%)
+        no-repeat;
+      background-size: 205%;
+      background-position: 100%;
+      border-radius: 50%;
+      transition: 0.4s;
+    }
+
+    &:checked {
+      background-position: 100%;
+
+      &::before {
+        left: calc(100% - 2.25em - 0.438em);
+        background-position: 0;
+      }
+    }
+  }
+}

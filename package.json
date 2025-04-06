@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "kill-port 3000 && kill-port 5000 && turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
@@ -21,6 +21,8 @@
     "packages/*"
   ],
   "dependencies": {
-    "@fontsource/rubik": "^5.1.1"
+    "@fontsource/rubik": "^5.1.1",
+    "web": "^0.1.0",
+    "workspace": "^0.0.1-preview.2"
   }
 }

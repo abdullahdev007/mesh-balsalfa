@@ -8,8 +8,7 @@ const useSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const username = getUsername(); 
-
+    const username = getUsername();       
 
     const socketConnection = io(process.env.NEXT_PUBLIC_SERVER_URL, {
       transports: ['websocket'],

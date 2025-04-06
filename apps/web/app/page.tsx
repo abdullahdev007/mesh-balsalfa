@@ -1,22 +1,39 @@
 // app/page.tsx
 
-'use client';  // This is required to let Next.js know this is a client-side component
+"use client";
 
-import { useEffect, useState } from 'react';
-import useSocket from './hooks/useSocket';  // Adjust path based on your folder structure
+import Image from "next/image";
+
+import styles from "./page.module.scss";
+import { useTheme } from "./context/ThemeContext";
+import { useState } from "react";
+
+import MainPanel from "./components/panels/main-panel/mainPanel";
+
+export enum Panel {
+  MAIN,
+  CREATE_LOCAL_GAME,
+  GAME_SCREEN,
+}
 
 const Home = () => {
-  const socket = useSocket();
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-
-  }, [socket]);
+  const { theme } = useTheme();
+  const [activePanel, setActivePanel] = useState<Panel>(Panel.MAIN);
 
   return (
-    <div>
-      <h1>Socket.io Example</h1>
-      <p>Message from server: {message}</p>
+    <div className={styles.container}>
+      <div className={styles.logoHolder}>
+        <Image
+          src={`/images/${theme === "dark" ? "light-logo.png" : "dark-logo.png"}`}
+          alt="game logo"
+          fill
+        />
+      </div>
+
+      <div className={styles.panel}>
+        {activePanel === Panel.MAIN && <MainPanel setActivePanel={setActivePanel} />}
+
+      </div>
     </div>
   );
 };
