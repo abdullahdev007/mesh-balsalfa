@@ -4,6 +4,8 @@ import styles from "./styles.module.scss";
 
 import { Panel } from "@/page";
 import { useTheme } from "@/context/ThemeContext";
+import { playSound } from "@/utils/soundPlayer";
+import UsernameInput from "@/components/usernameInput/usernameInput";
 
 const MainPanel = ({
   setActivePanel,
@@ -24,25 +26,33 @@ const MainPanel = ({
 
   const handleJoin = () => {};
 
+  const handleCreateRoom = () => {
+    playSound("click.wav");
+  };
+
   return (
     <div className={styles.container}>
-      <div className={styles.buttons}>
-        <span> أنشاء غرفة </span>
-        <span> لعبة محلية </span>
-      </div>
 
-      
-      <div className={`${styles.joinRoom} ${theme === 'dark' ? styles.dark : styles.light}`}>
-        <input
-          type="text"
-          placeholder="معرف الغرفة"
-          maxLength={6}
-          onChange={handleInputChange}
-          value={roomId}
-        />
-        <button onClick={handleJoin}>
-          الانضمام
-        </button>
+      <UsernameInput />
+
+      <div className={styles.flexbox}>
+        <div className={styles.buttons}>
+          <span onClick={handleCreateRoom}> أنشاء غرفة </span>
+          <span> لعبة محلية </span>
+        </div>
+
+        <div
+          className={`${styles.joinRoom} ${theme === "dark" ? styles.dark : styles.light}`}
+        >
+          <input
+            type="text"
+            placeholder="معرف الغرفة"
+            maxLength={6}
+            onChange={handleInputChange}
+            value={roomId}
+          />
+          <button onClick={handleJoin}>الانضمام</button>
+        </div>
       </div>
     </div>
   );
