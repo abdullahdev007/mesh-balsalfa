@@ -9,6 +9,7 @@ export class RoomsManager {
     try {
       const room: Room = new Room(admin);
       this.rooms.push(room);
+      admin.room = room;
 
       console.log(`Room with ${room.id} is created by ${admin.name} player`);
       return room;

@@ -1,0 +1,6 @@
+class OfflineGameEngine {
+  
+  constructor() {
+
+  }
+}

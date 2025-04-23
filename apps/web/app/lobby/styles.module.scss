@@ -1,0 +1,399 @@
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 24px 0;
+  gap: 25px;
+
+  .roomID {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    gap: 25px;
+
+    text-align: center;
+
+    font-size: 1.5rem;
+    .title {
+      font-size: 1.3em;
+
+      font-weight: 600;
+    }
+
+    .id {
+      font-size: 1em;
+
+      transition: 0.3s ease;
+
+      letter-spacing: 0.4ch;
+
+      &:hover {
+        transform: scale(1.2);
+        opacity: 0.7;
+        color: $primary-color;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .rightSection {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    flex: 2;
+    width: 100%;
+
+    .logoHolder {
+      position: relative;
+      aspect-ratio: 2/1;
+      flex: 1;
+      height: 100%;
+      width: 100%;
+      max-width: 300px;
+      min-width: 150px;
+      margin-top: 25px;
+      align-self: center;
+
+      img {
+        width: 100%;
+        object-fit: contain;
+      }
+    }
+
+    .listsFlex {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 25px;
+      height: 100%;
+
+      .title {
+        border-bottom: 2px solid $primary-color;
+        width: 100%;
+        padding-bottom: 15px;
+
+        font-weight: bolder;
+      }
+
+      .table {
+        text-align: center;
+        border: 2px solid $primary-color;
+        border-radius: 25px;
+        padding: 15px 0;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+
+        -webkit-box-shadow: 10px 0px 40px -17px rgba($dark-color, 0.75);
+        -moz-box-shadow: 10px 0px 40px -17px rgba($dark-color, 0.75);
+        box-shadow: 10px 0px 40px -17px rgba($dark-color, 0.75);
+
+        &.dark {
+          -webkit-box-shadow: 10px 0px 40px -17px rgba($light-color, 0.75);
+          -moz-box-shadow: 10px 0px 40px -17px rgba($light-color, 0.75);
+          box-shadow: 10px 0px 40px -17px rgba($light-color, 0.75);
+        }
+      }
+    }
+
+    .playersList {
+      min-width: 350px;
+      min-height: 450px;
+      max-height: 450px;
+      direction: rtl;
+
+      ul {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        gap: 10px;
+
+        overflow-y: auto;
+        flex: 2;
+
+        white-space: nowrap;
+
+        mask-image: linear-gradient(
+          to bottom,
+          transparent 0px,
+          black 50px,
+          black calc(100% - 50px),
+          transparent 100%
+        );
+
+        // For Webkit (Chrome/Safari)
+        -webkit-mask-image: linear-gradient(
+          to bottom,
+          transparent 0px,
+          black 50px,
+          black calc(100% - 50px),
+          transparent 100%
+        );
+      }
+
+      .addPlayer {
+        padding: 0 25px;
+        padding-top: 15px;
+        border-top: 2px solid $primary-color;
+        cursor: pointer;
+        transition: 0.3s;
+
+        font-weight: bolder;
+
+        &:hover {
+          color: lighten($color: $primary-color, $amount: 10);
+        }
+      }
+    }
+
+    .roundHistory {
+      min-width: 350px;
+      min-height: 450px;
+      max-height: 450px;
+
+      .roundLists {
+        display: flex;
+        flex-direction: column;
+        padding: 0 20px;
+        gap: 25px;
+
+        height: 100%;
+        flex: 2;
+
+        overflow-y: auto;
+      }
+
+      .round {
+        background-color: var(--reverse-theme-color);
+        color: var(--theme-color);
+        border-radius: 25px;
+
+        text-align: right;
+        direction: rtl;
+
+        padding: 25px 25px;
+
+        font-size: 0.6rem;
+        border: 2px dashed $primary-color;
+
+        .votes {
+          display: flex;
+          gap: 10px;
+
+          div {
+            display: flex;
+            flex-direction: column;
+            font-size: 0.8em;
+          }
+        }
+      }
+
+      .noRoundYet {
+        flex: 2;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      }
+    }
+  }
+
+  .leftSection {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+  }
+
+  .topicSelect {
+    display: flex;
+    flex-direction: column;
+
+    text-align: center;
+
+    border: 5px solid $primary-color;
+    border-radius: 15px;
+
+    background-image: url("/images/topics/animals.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    span {
+      padding: 25px 15px;
+      color: $primary-color;
+      font-weight: bolder;
+      font-size: 2.5em;
+      text-shadow: 4px 4px 2px rgba(0, 0, 0, 0.6);
+    }
+
+    button {
+      background-color: $primary-color;
+      border: 0;
+      padding: 15px;
+
+      font-size: 0.9rem;
+      border-radius: 5px;
+      font-weight: bolder;
+
+      color: $dark-color;
+
+      transition: all 0.3s ease;
+
+      &:hover {
+        cursor: pointer;
+        background-color: lighten($color: $primary-color, $amount: 15);
+      }
+    }
+  }
+
+  .buttonsGroup {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    width: 50%;
+    align-self: center;
+
+    span {
+      font-size: 1rem;
+      font-weight: bolder;
+      padding: 5px 35px;
+
+      color: $dark-color;
+      cursor: pointer;
+
+      border: none;
+
+      text-align: center;
+      height: 100%;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      &.startRound {
+        border-radius: 25px 25px 0 0;
+        background-color: lighten($color: $sucess-color, $amount: 25);
+        transition: 0.3s ease;
+      }
+
+      &.leaveGame {
+        border-radius: 0 0 25px 25px;
+        background-color: lighten($color: $danger-color, $amount: 25);
+        transition: 0.3s ease;
+      }
+
+      &:hover {
+        &.startRound {
+          background-color: lighten($color: $sucess-color, $amount: 15);
+        }
+
+        &.leaveGame {
+          background-color: lighten($color: $danger-color, $amount: 15);
+        }
+      }
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .rightSection {
+      .listsFlex {
+        .playersList {
+          min-width: 150px;
+          min-height: 350px;
+          max-height: 350px;
+        }
+
+        .roundHistory {
+          min-width: 150px;
+          min-height: 350px;
+          max-height: 350px;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 900px) {
+    padding: 0;
+    padding-bottom: 25px;
+    .logoHolder {
+      display: none;
+    }
+
+    .leftSection {
+      min-width: 200px;
+    }
+    .rightSection {
+      .listsFlex {
+        flex-direction: column;
+        width: 100%;
+
+        .playersList {
+          max-width: 250px;
+          min-width: 250px;
+
+          max-height: 300px;
+          min-height: 300px;
+          ul {
+            gap: 15px;
+          }
+        }
+
+        .roundHistory {
+          max-width: 250px;
+          max-height: 250px;
+
+          max-height: 300px;
+          min-height: 300px;
+          .roundLists {
+            .round {
+              height: fit-content;
+              min-width: 150px;
+            }
+          }
+        }
+      }
+      .buttonsGroup {
+        margin-top: 25px;
+        width: 100%;
+      }
+    }
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    padding: 10px 15px;
+    margin: 25px 0;
+    height: fit-content;
+
+    .leftSection {
+      gap: 50px;
+    }
+
+    .rightSection {
+      .playersList,
+      .roundHistory {
+        width: 100%;
+
+        .title {
+          font-size: 1.6rem;
+        }
+      }
+
+      .roundHistory {
+        .round {
+          font-size: 0.9rem;
+          padding: 15px;
+        }
+        .votes {
+          .vote {
+            font-size: 1.5em;
+          }
+        }
+      }
+    }
+  }
+}

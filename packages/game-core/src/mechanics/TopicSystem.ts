@@ -72,10 +72,10 @@ export class TopicManager {
   }
 
   getTopics = (category?: TopicCategory): Topic[] =>
-    category === null
-      ? this.topics
-      : this.topics.filter((topic: Topic) => topic.category === category);
+    category
+      ? this.topics.filter((topic: Topic) => topic.category === category)
+      : this.topics;
 
-
-  getTopic = (topicID: string): Topic => this.topics.find((topic: Topic) => topic.id === topicID)!;
+  getTopic = (topicID: string): Topic =>
+    this.topics.find((topic: Topic) => topic.id === topicID)!;
 }

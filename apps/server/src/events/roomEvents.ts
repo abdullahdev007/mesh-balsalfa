@@ -2,7 +2,7 @@ import { Socket, Server } from "socket.io";
 import { RoomsManager, GameManager } from "../managers";
 import { Player, Room } from "../models";
 
-import { ClientEvents, ServerEvents } from "@repo/socket-events";
+import { ClientEvents, ServerEvents, RoomInfo } from "@repo/shared";
 import { TopicCategory } from "@repo/game-core";
 
 export const handleRoomEvents = (
@@ -12,27 +12,41 @@ export const handleRoomEvents = (
 ) => {
   const roomsManager: RoomsManager = gameManager.roomsManager;
 
-
   // Create Destroy events
 
   socket.on(ClientEvents.CREATE_ROOM, () => {
     try {
       const admin: Player | null = gameManager.getPlayerBySocketId(socket.id);
 
-      // Emit an error if the admin is not found
       if (!admin)
         return io.to(socket.id).emit(ServerEvents.ERROR, {
           message:
             "An error occurred while creating the room, please try again.",
         });
 
-      // create room and add player to room
+      // Create the room and add the player
       const room: Room = roomsManager.createRoom(admin);
       socket.join(room.id);
 
-      io.to(room.id).emit(ServerEvents.ROOM_CREATED, { roomId: room.id }); // Notify all players in the room
+      // Construct RoomInfo object
+      
+      
+      const roomInfo: RoomInfo = {
+        id: room.id,
+        adminID: room.admin.socketId,
+        players: Array.from(room.players.entries()).map(([id, p]) => ({
+          id,
+          username: p.name,
+        })),
+        topics: room.gameEngine.getTopics(),
+        rounds: room.gameEngine.state.rounds,
+      };
+      
+      
+      // Emit RoomInfo to the creator only
+      io.to(socket.id).emit(ServerEvents.ROOM_CREATED, { roomInfo });
     } catch (error) {
-      console.log(`Error on createing room : ${error}`);
+      console.log(`Error on creating room: ${error}`);
       io.to(socket.id).emit(ServerEvents.ERROR, {
         message: "An error occurred while creating the room, please try again.",
       });
@@ -66,9 +80,7 @@ export const handleRoomEvents = (
     }
   });
 
-
   // Join leave room events
-  
   socket.on(ClientEvents.JOIN_ROOM, (roomId: string) => {
     try {
       const player: Player | null = gameManager.getPlayerBySocketId(socket.id);
@@ -136,12 +148,12 @@ export const handleRoomEvents = (
     try {
       const player: Player | null = gameManager.getPlayerBySocketId(socket.id);
 
-      if (!player || player.room?.admin.id !== player.id)
+      if (!player || roomsManager.getRoomById(player.room?.id ?? "")?.admin.id !== player.id)
         return io.to(socket.id).emit(ServerEvents.ERROR, {
           message: "only room admin can edit topics",
         });
 
-      const room: Room = player.room;
+      const room: Room =  player.room!;
 
       if (room.gameEngine.state.phase !== "lobby")
         return io.to(socket.id).emit(ServerEvents.ERROR, {
@@ -189,4 +201,38 @@ export const handleRoomEvents = (
       });
     }
   });
+
+  // Info events
+
+  socket.on(
+    ClientEvents.GET_ROOM_INFO,
+    (roomId: string, callback: (response: any) => void) => {
+      console.log("Request received for roomId:", roomId); // التأكد من الـ roomId
+
+      try {
+        const room: Room | undefined = roomsManager.getRoomById(roomId);
+        if (!room) {
+          return callback({ error: `Room with id ${roomId} not found` }); // إرجاع خطأ إذا لم يتم العثور على الغرفة
+        }
+
+        // جمع معلومات الغرفة
+        const roomInfo = {
+          id: room.id,
+          admin: room.admin.name,
+          players: room.players.forEach((p: Player) => ({
+            id: p.id,
+            username: p.name,
+          })),
+          topics: room.gameEngine.getTopics(),
+          rounds: room.gameEngine.state.rounds,
+        };
+
+        // إرجاع المعلومات عبر callback
+        callback({ data: roomInfo });
+      } catch (error) {
+        console.log("Error on GET_ROOM_INFO:", error);
+        callback({ error: "Failed to fetch room info" }); // إرجاع خطأ إذا فشل أي جزء من العملية
+      }
+    }
+  );
 };

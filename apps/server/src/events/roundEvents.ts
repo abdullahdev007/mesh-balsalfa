@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { GameManager, RoundManager } from "../managers";
-import { ClientEvents, ServerEvents } from "@repo/socket-events";
+import { ClientEvents, ServerEvents } from "@repo/shared";
 import { Player, Room } from "../models";
 import { GameEvent, GamePhase, Question, Round } from "@repo/game-core";
 

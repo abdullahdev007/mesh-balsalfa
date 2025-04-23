@@ -12,40 +12,92 @@
   color: $dark-color;
 
   
+
+  --reverse-theme-color: #{$dark-color};
+  --theme-color: #{$light-color};
   
   font-size: 24px;
-
+  
   &.dark {
+    --theme-color: #{$dark-color};
+    --reverse-theme-color: #{$light-color};
     background-color: $dark-color;
     color: $light-color;
+
+    button {
+      color: $light-color;
+    }
   }
   
   
+  button {
+    color: $dark-color
+  }
 }
 
-body {
-  padding: 0 50px;
+
+
+
+
+ul {
+  list-style: none;
 }
+
 
 html,
 body,
 #__next {
   height: 100vh;
+  
+}
+
+body {
+  padding: 0 50px;
   display: flex;
   flex-direction: column;
 }
+
 
 .main {
   flex: 1;
 }
 
+// Scrollbar style 
+
+*::-webkit-scrollbar-track
+{
+  border-radius: 10px;
+  background-color: transparent;
+}
+
+*::-webkit-scrollbar
+{
+  width: 12px;
+  background-color: transparent;
+}
+
+*::-webkit-scrollbar-thumb
+{
+  border-radius: 10px;
+  background-color: #555;
+}
+
 @media (max-width: 900px) {
+
+  :root {
+    font-size: 18px;
+  }
+
   body {
     padding: 0 40px;
   }
 }
 
 @media (max-width: 600px) {
+
+  :root {
+    font-size: 14px;
+  }
   body {
     padding: 0 25px;
   }

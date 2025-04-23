@@ -6,17 +6,18 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --config ./src/config/nodemon.json"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/game-core": "*",
-    "@repo/socket-events": "*",
+    "@repo/shared": "*",
     "@repo/typescript-config": "*",
     "@types/express": "^5.0.0",
     "dotenv": "^16.4.7",
     "eslint": "^9.19.0",
     "nodemon": "^3.1.9",
+    "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "5.7.3"
   },

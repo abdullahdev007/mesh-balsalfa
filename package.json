@@ -22,6 +22,7 @@
   ],
   "dependencies": {
     "@fontsource/rubik": "^5.1.1",
+    "framer-motion": "^12.7.3",
     "react-icons": "^5.5.0",
     "web": "^0.1.0",
     "workspace": "^0.0.1-preview.2"

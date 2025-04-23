@@ -31,7 +31,7 @@ export class GameEngine extends EventEmitter {
     super();
     this.stateManager = new GameStateManager(initialState);
     this.roleSystem = new RoleSystem();
-    this.topicManager = new TopicManager();
+    this.topicManager = new TopicManager();    
     this.freeQuestionSystem = new FreeQuestionSystem();
     this.questionSystem = new QuestionSystem();
     this.votingSystem = new VotingSystem();
@@ -145,7 +145,7 @@ export class GameEngine extends EventEmitter {
       this.stateManager.startNewRound(topic);
 
       this.emit(GameEvent.ROUND_STARTED, this.stateManager.getCurrentRound());
-      this.emit(GameEvent.PHASE_CHANGED, this.state.phase);
+      this.emit(GameEvent.PHASE_CHANGED, this.state.phase);      
     } catch (error) {
       console.log(`error on start new round : ${error}`);
 
