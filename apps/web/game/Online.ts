@@ -1,6 +1,7 @@
 import { Socket } from "socket.io-client";
 import { ClientEvents, ServerEvents, RoomInfo } from "@repo/shared";
 import toast from "react-hot-toast";
+import { Topic } from "@repo/game-core";
 
 const UNEXPECTED_ERROR_MSG = "حدث شيء خاطئ يرجى المحاولة مرة أخرى";
 
@@ -27,13 +28,15 @@ export class OnlineGameEngine {
       console.error(err);
     });
 
-    this.socket.on(ServerEvents.ROOM_CREATED, ({ roomInfo }: { roomInfo: RoomInfo }) => {
-      this.roomInfo = roomInfo;
-      this.onRoomInfoChange?.(roomInfo);
-      console.log(roomInfo.topics);
-      
-      toast.success(`Room created: ${roomInfo.id}`);
-    });
+    this.socket.on(
+      ServerEvents.ROOM_CREATED,
+      ({ roomInfo }: { roomInfo: RoomInfo }) => {
+        this.roomInfo = roomInfo;
+        this.onRoomInfoChange?.(roomInfo);
+
+        toast.success(`Room created: ${roomInfo.id}`);
+      }
+    );
   }
 
   public createRoom() {
@@ -54,15 +57,18 @@ export class OnlineGameEngine {
   public getRoomInfo(roomID: string, callback: (info?: RoomInfo) => void) {
     if (!this.socket) return;
 
-    this.socket.emit(ClientEvents.GET_ROOM_INFO, roomID, (res: { data?: RoomInfo; error?: string }) => {
+    this.socket.emit(
+      ClientEvents.GET_ROOM_INFO,
+      roomID,
+      (res: { data?: RoomInfo; error?: string }) => {
+        if (res.error) {
+          toast.error(res.error);
+          return callback(undefined);
+        }
 
-      if (res.error) {
-        toast.error(res.error);
-        return callback(undefined);
+        callback(res.data);
       }
-
-      callback(res.data);
-    });
+    );
   }
 
   public getRoom(): RoomInfo | undefined {
@@ -76,6 +82,64 @@ export class OnlineGameEngine {
   public setRoomInfoListener(callback: (info: RoomInfo) => void) {
     this.onRoomInfoChange = callback;
   }
+
+  public addTopic(topic: Topic) {
+    if (!this.socket) {
+      toast.error(UNEXPECTED_ERROR_MSG);
+      return;
+    }
+
+    this.socket.emit(
+      ClientEvents.ADD_TOPIC,
+      topic,
+      (res: { roomId?: string }) => {
+        if (res.roomId) {
+          toast.success(`Room created: ${res.roomId}`);
+        } else {
+          toast.error(UNEXPECTED_ERROR_MSG);
+        }
+      }
+    );
+  }
+
+  public removeTopic(topic: Topic) {
+    if (!this.socket) {
+      toast.error(UNEXPECTED_ERROR_MSG);
+      return;
+    }
+
+    this.socket.emit(
+      ClientEvents.REMOVE_TOPIC,
+      topic,
+      (res: { roomId?: string }) => {
+        if (res.roomId) {
+          toast.success(`Room created: ${res.roomId}`);
+        } else {
+          toast.error(UNEXPECTED_ERROR_MSG);
+        }
+      }
+    );
+  }
+
+  public updateTopic(topic: Topic) {
+    if (!this.socket) {
+      toast.error(UNEXPECTED_ERROR_MSG);
+      return;
+    }
+
+    this.socket.emit(
+      ClientEvents.UPDATE_TOPIC,
+      topic,
+      (res: { roomId?: string }) => {
+        if (res.roomId) {
+          toast.success(`Room created: ${res.roomId}`);
+        } else {
+          toast.error(UNEXPECTED_ERROR_MSG);
+        }
+      }
+    );
+  }
+
 
   public cleanup() {
     this.socket.disconnect();

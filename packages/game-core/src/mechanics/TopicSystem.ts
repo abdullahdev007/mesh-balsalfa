@@ -42,6 +42,19 @@ export class TopicManager {
     this.topics = this.topics.filter((topic: Topic) => topic.id !== topicID);
   }
 
+  updateTopic(updatedTopic: Topic): void {
+    const topicIndex = this.topics.findIndex(
+      (topic) => topic.id === updatedTopic.id
+    );
+
+    if (topicIndex !== -1) {
+      this.topics[topicIndex] = { ...this.topics[topicIndex], ...updatedTopic };
+    } else {
+      console.error("Topic not found with ID:", updatedTopic.id);
+    }
+  }
+
+
   resetTopics(): void {
     this.topics = this.loadDefaultTopics();
   }

@@ -3,7 +3,7 @@ import { RoomsManager, GameManager } from "../managers";
 import { Player, Room } from "../models";
 
 import { ClientEvents, ServerEvents, RoomInfo } from "@repo/shared";
-import { TopicCategory } from "@repo/game-core";
+import { Topic, TopicCategory } from "@repo/game-core";
 
 export const handleRoomEvents = (
   io: Server,
@@ -201,6 +201,36 @@ export const handleRoomEvents = (
       });
     }
   });
+
+  socket.on(ClientEvents.UPDATE_TOPIC, (newTopic: Topic) => {
+    try {
+      const player: Player | null = gameManager.getPlayerBySocketId(socket.id);
+
+      if (!player || player.room?.admin.id !== player.id)
+        return io.to(socket.id).emit(ServerEvents.ERROR, {
+          message: "only room admin can edit topics",
+        });
+
+      const room: Room = player.room;
+
+      if (room.gameEngine.state.phase !== "lobby")
+        return io.to(socket.id).emit(ServerEvents.ERROR, {
+          message: "Edit topics are only available in the lobby",
+        });
+
+      room.gameEngine.up(newTopic);
+
+      io.to(room.id).emit(ServerEvents.TOPICS_UPDATED, {
+        topics: room.gameEngine.getTopics(),
+      });
+    } catch (error) {
+      console.log("Error on add a topic ", error);
+      io.to(socket.id).emit(ServerEvents.ERROR, {
+        message: "something write wrong Please try again.",
+      });
+    }
+  });
+
 
   // Info events
 

@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { GameEngine as OfflineGameEngine } from '@repo/game-core';
 import { io, Socket } from 'socket.io-client';
 import { OnlineGameEngine } from '@/game/Online';
-import { ClientEvents } from '@repo/shared';
 import { generateRandomUsername } from '@/utils/generateRandomUsername';
 import toast from 'react-hot-toast';
 

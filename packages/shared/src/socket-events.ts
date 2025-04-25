@@ -39,6 +39,7 @@ export const ClientEvents = {
 
   ADD_TOPIC: "topics:add",
   REMOVE_TOPIC: "topics:remove",
+  UPDATE_TOPIC: "topics:update",
 
   START_VOTING: "round:start_voting", // start voting phase
   CAST_VOTE: "round:start_vote", // cast vote 
