@@ -41,6 +41,7 @@ export class GameEngine extends EventEmitter {
     try {
       this.stateManager.addPlayer(player);
 
+
       this.emit(GameEvent.PLAYER_JOINED, player);
     } catch (error) {
       console.log(`Error adding player: ${error}`);
@@ -82,7 +83,7 @@ export class GameEngine extends EventEmitter {
     }
   }
 
-  public changeTopicCategory = (topicCategory: TopicCategory) => {
+  public updateTopicCategory = (topicCategory: TopicCategory) => {
     try {
       this.stateManager.updateState({ selectedTopicCategory: topicCategory });
 
@@ -128,7 +129,6 @@ export class GameEngine extends EventEmitter {
       this.topicManager.updateTopic(newTopic);
       this.emit(GameEvent.TOPICS_UPDATED, this.topicManager.topics);
     } catch (error) {
-      
       console.log(`error on update topic: ${error}`);
       this.emit(GameEvent.ERROR, error);
     }

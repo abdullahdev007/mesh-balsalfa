@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 .usernameInput {
   border-radius: 10px;
   border: 2px solid $primary-color;
@@ -76,7 +78,7 @@
       color: $light-color;
 
       &::placeholder {
-        color: darken($color: $light-color, $amount: 35);
+        color: color.adjust($light-color, $lightness: -35%);
       }
     }
 

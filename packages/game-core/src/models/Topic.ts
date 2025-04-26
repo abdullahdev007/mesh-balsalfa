@@ -16,3 +16,17 @@ export type TopicCategory =
   | "characters"
   | "series"
   | "cars";
+
+export const  CategoryTranslations = {
+  foods: "أطعمة",
+  clothes: "ملابس",
+  places: "أماكن",
+  transportation: "مواصلات",
+  professions: "مهن",
+  youtubers: "يوتيوبرز",
+  animals: "حيوانات",
+  cartoons: "رسوم متحركة",
+  characters: "شخصيات",
+  series: "مسلسلات",
+  cars: "سيارات"
+};

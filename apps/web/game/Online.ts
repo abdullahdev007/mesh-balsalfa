@@ -1,16 +1,21 @@
 import { Socket } from "socket.io-client";
 import { ClientEvents, ServerEvents, RoomInfo } from "@repo/shared";
 import toast from "react-hot-toast";
-import { Topic } from "@repo/game-core";
+import { Topic, TopicCategory } from "@repo/game-core";
+import translateCategory from "@repo/game-core/dist/utils/translateCategory";
+
 
 const UNEXPECTED_ERROR_MSG = "حدث شيء خاطئ يرجى المحاولة مرة أخرى";
-
 export class OnlineGameEngine {
   public roomInfo?: RoomInfo;
   private isConnected = false;
   private onRoomInfoChange?: (roomInfo: RoomInfo) => void;
+  private onCategoryChange?: (category: TopicCategory) => void;
+  private socket: Socket;
+  public choosedCategory: TopicCategory = "animals";
 
-  constructor(private socket: Socket) {
+  constructor(socket: Socket) {
+    this.socket = socket;
     this.setupListeners();
   }
 
@@ -24,122 +29,118 @@ export class OnlineGameEngine {
     });
 
     this.socket.on("connect_error", (err: Error) => {
-      toast.error(UNEXPECTED_ERROR_MSG);
+      this.showError(err.message || UNEXPECTED_ERROR_MSG);
       console.error(err);
     });
 
-    this.socket.on(
-      ServerEvents.ROOM_CREATED,
-      ({ roomInfo }: { roomInfo: RoomInfo }) => {
-        this.roomInfo = roomInfo;
-        this.onRoomInfoChange?.(roomInfo);
+    this.socket.on(ServerEvents.ROOM_CREATED, ({ roomInfo }: { roomInfo: RoomInfo }) => {
+      this.updateRoomInfo(roomInfo);
+      toast.success(`تم إنشاء غرفة بمعرف: ${roomInfo.id}`);
+    });
 
-        toast.success(`Room created: ${roomInfo.id}`);
+    this.socket.on(ServerEvents.TOPIC_CATEGORY_UPDATED, ({ category }: { category: TopicCategory }) => {
+      toast.success(`تم تحديث السالفة الى ${translateCategory(category)}`);
+
+      this.choosedCategory = category;
+      this.updateCategory(category); // Update category whenever the category is changed
+    });
+
+    this.socket.on(ServerEvents.TOPICS_UPDATED, ({ topics }: { topics: Topic[] }) => {
+      if (!this.roomInfo) return;
+      if(this.roomInfo.adminID !== this.socket.id) {
+        toast.success("تم تحديث السوالف بنجاح")
+      }else {
+        toast.success("تم تحديث السوالف يمكنك الاطلاع عليها")
       }
-    );
+      this.updateRoomInfo({
+        ...this.roomInfo,
+        topics: [...topics],
+      });
+    });
+  }
+
+  private updateRoomInfo(newInfo: RoomInfo) {
+    this.roomInfo = newInfo;
+    this.onRoomInfoChange?.(this.roomInfo);
+  }
+
+  private updateCategory(newCategory: TopicCategory) {
+    this.choosedCategory = newCategory;
+    this.onCategoryChange?.(this.choosedCategory); // Notify about category change
+  }
+
+  private showError(message: string) {
+    toast.error(message || UNEXPECTED_ERROR_MSG);
   }
 
   public createRoom() {
-    if (!this.socket) {
-      toast.error(UNEXPECTED_ERROR_MSG);
+    if (!this.socket?.connected) {
+      this.showError(UNEXPECTED_ERROR_MSG);
       return;
     }
 
     this.socket.emit(ClientEvents.CREATE_ROOM, (res: { roomId?: string }) => {
       if (res.roomId) {
-        toast.success(`Room created: ${res.roomId}`);
+        toast.success(`تم إنشاء الغرفة: ${res.roomId}`);
       } else {
-        toast.error(UNEXPECTED_ERROR_MSG);
+        this.showError(UNEXPECTED_ERROR_MSG);
       }
     });
-  }
-
-  public getRoomInfo(roomID: string, callback: (info?: RoomInfo) => void) {
-    if (!this.socket) return;
-
-    this.socket.emit(
-      ClientEvents.GET_ROOM_INFO,
-      roomID,
-      (res: { data?: RoomInfo; error?: string }) => {
-        if (res.error) {
-          toast.error(res.error);
-          return callback(undefined);
-        }
-
-        callback(res.data);
-      }
-    );
-  }
-
-  public getRoom(): RoomInfo | undefined {
-    return this.roomInfo;
   }
 
   public getIsConnected(): boolean {
     return this.isConnected;
   }
 
+  public chooseCategory(category: TopicCategory) {
+    if (!this.socket?.connected) {
+      this.showError(UNEXPECTED_ERROR_MSG);
+      return;
+    }
+
+    this.socket.emit(ClientEvents.UPDATE_TOIC_CATEGORY, category);
+  }
+
   public setRoomInfoListener(callback: (info: RoomInfo) => void) {
     this.onRoomInfoChange = callback;
+    if (this.roomInfo) {
+      callback(this.roomInfo); // immediately push current roomInfo if available
+    }
   }
 
-  public addTopic(topic: Topic) {
-    if (!this.socket) {
-      toast.error(UNEXPECTED_ERROR_MSG);
+  public setCategoryListener(callback: (category: TopicCategory) => void) {
+    this.onCategoryChange = callback;
+    if (this.choosedCategory) {
+      callback(this.choosedCategory); // immediately push current category if available
+    }
+  }
+
+  public addTopic(topic: Omit<Topic, "id">) {
+    if (!this.socket?.connected) {
+      this.showError(UNEXPECTED_ERROR_MSG);
       return;
     }
 
-    this.socket.emit(
-      ClientEvents.ADD_TOPIC,
-      topic,
-      (res: { roomId?: string }) => {
-        if (res.roomId) {
-          toast.success(`Room created: ${res.roomId}`);
-        } else {
-          toast.error(UNEXPECTED_ERROR_MSG);
-        }
-      }
-    );
+    this.socket.emit(ClientEvents.ADD_TOPIC, topic);
   }
 
-  public removeTopic(topic: Topic) {
-    if (!this.socket) {
-      toast.error(UNEXPECTED_ERROR_MSG);
+  public removeTopic(topicID: string) {
+    if (!this.socket?.connected) {
+      this.showError(UNEXPECTED_ERROR_MSG);
       return;
     }
 
-    this.socket.emit(
-      ClientEvents.REMOVE_TOPIC,
-      topic,
-      (res: { roomId?: string }) => {
-        if (res.roomId) {
-          toast.success(`Room created: ${res.roomId}`);
-        } else {
-          toast.error(UNEXPECTED_ERROR_MSG);
-        }
-      }
-    );
+    this.socket.emit(ClientEvents.REMOVE_TOPIC, topicID);
   }
 
-  public updateTopic(topic: Topic) {
-    if (!this.socket) {
-      toast.error(UNEXPECTED_ERROR_MSG);
+  public updateTopic(newTopic: Topic) {
+    if (!this.socket?.connected) {
+      this.showError(UNEXPECTED_ERROR_MSG);
       return;
     }
 
-    this.socket.emit(
-      ClientEvents.UPDATE_TOPIC,
-      topic,
-      (res: { roomId?: string }) => {
-        if (res.roomId) {
-          toast.success(`Room created: ${res.roomId}`);
-        } else {
-          toast.error(UNEXPECTED_ERROR_MSG);
-        }
-      }
-    );
+    this.socket.emit(ClientEvents.UPDATE_TOPIC, newTopic);
   }
-
 
   public cleanup() {
     this.socket.disconnect();

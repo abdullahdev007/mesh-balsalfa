@@ -15,7 +15,7 @@ const Home = () => {
   const { theme } = useTheme();
   const [roomId, setRoomId] = useState<string>("");
   const router = useRouter();
-  const { online } = useGameContext();
+  const { online,offline } = useGameContext();
   
  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,6 +33,11 @@ const Home = () => {
     playSound("click.wav");
     online.createRoom();
     router.push("/lobby/online");
+  };
+
+  const handleStartLocalGame = () => {
+    playSound("click.wav");
+    router.push("/lobby/offline");
   };
 
   return (
@@ -54,7 +59,7 @@ const Home = () => {
             <div className={styles.flexbox}>
               <div className={styles.buttons}>
                 <span onClick={handleCreateRoom}> أنشاء غرفة </span>
-                <span> لعبة محلية </span>
+                <span onClick={handleStartLocalGame}> لعبة محلية </span>
               </div>
 
               <div

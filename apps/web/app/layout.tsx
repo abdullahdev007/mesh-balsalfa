@@ -11,6 +11,7 @@ import Footer from "@/components/footer/footer";
 import ToastProvider from "@/components/toastProvider/ToastProvider";
 
 import { GameProvider } from "@/context/GameContext";
+import Head from "next/head";
 
 export const metadata: Metadata = {
   title: "مش بلسالفة",
@@ -24,6 +25,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar">
+      <Head>
+        <link rel="icon" href="/images/dark-logo.png"  type="image/png" />  {/* Prevents favicon request */}
+      </Head>
       <body>
         <GameProvider>
           <ThemeProvider>

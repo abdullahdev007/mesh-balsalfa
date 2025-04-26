@@ -4,7 +4,7 @@ import { GameEvent, GamePhase, GameState, Player, Round } from "./models";
 export * from "./engine";
 export * from "./models";
 export * from "./models";
-
+export * from "./utils";
 
 
 // Simple Test Game Core

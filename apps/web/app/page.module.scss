@@ -1,3 +1,5 @@
+@use "sass:color";
+
 .container {
   height: 100%;
   padding: 50px 50px;
@@ -51,7 +53,7 @@
 
           &:hover {
             cursor: pointer;
-            color: lighten($primary-color, 7.5);
+            color: color.adjust($primary-color, $lightness: 7.5%); // Using color.adjust
           }
         }
       }
@@ -81,7 +83,7 @@
 
           &:focus,
           &:focus-visible {
-            border-color: lighten($primary-color, 15);
+            border-color: color.adjust($primary-color, $lightness: 15%); // Using color.adjust for focus state
             outline: none;
           }
         }
@@ -99,13 +101,13 @@
           color: $light-color;
 
           &:hover {
-            background-color: lighten($primary-color, 7);
+            background-color: color.adjust($primary-color, $lightness: 7%); // Using color.adjust
           }
         }
 
         &.dark {
           input::placeholder {
-            color: darken($light-color, 35);
+            color: color.adjust($light-color, $lightness: -35%); // Dark theme placeholder
           }
 
           button {

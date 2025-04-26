@@ -15,6 +15,7 @@ const ToastProvider = () => {
           color: '#FFFFFF',      // $light-color
           border: '2px solid #EF8354', // $primary-color
           padding: '12px 16px',
+          direction: "rtl"
         },
         success: {
           iconTheme: {

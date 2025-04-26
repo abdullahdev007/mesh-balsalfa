@@ -1,8 +1,8 @@
-export type Role = "Insider" | "Spy"; 
+export type Role = "Insider" | "Spy";
 
 export interface Player {
   id: string;
-  name: string;
+  username: string;
   role: Role | undefined;
   score: number;
 }

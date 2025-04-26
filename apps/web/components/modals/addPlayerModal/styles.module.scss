@@ -1,13 +1,18 @@
+@use 'sass:color';
+
 // styles.module.scss
-
-
 
 .modal {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   max-width: 400px;
   width: 90%;
-  direction: rtl;  
+  direction: ltr; // Default direction
+  
+  &.rtl {
+    direction: rtl; // For right-to-left languages
+  }
+  
   &.light {
     background-color: $light-color;
     color: $dark-color;
@@ -108,7 +113,7 @@
   
   .dark & {
     border: 2px solid $secondary-color;
-    background-color: lighten($dark-color, 10%);
+    background-color: color.adjust($dark-color, $lightness: 10%);
     color: $light-color;
     
     &:focus {
@@ -140,16 +145,16 @@
     color: $dark-color;
     
     &:hover {
-      background-color: darken($grey-color, 10%);
+      background-color: color.adjust($grey-color, $lightness: -10%);
     }
   }
   
   .dark & {
-    background-color: lighten($dark-color, 15%);
+    background-color: color.adjust($dark-color, $lightness: 15%);
     color: $light-color;
     
     &:hover {
-      background-color: lighten($dark-color, 20%);
+      background-color: color.adjust($dark-color, $lightness: 20%);
     }
   }
 }
@@ -162,7 +167,7 @@
     color: $light-color;
     
     &:hover {
-      background-color: darken($primary-color, 10%);
+      background-color: color.adjust($primary-color, $lightness: -10%);
     }
   }
   
@@ -171,7 +176,8 @@
     color: $dark-color;
     
     &:hover {
-      background-color: lighten($primary-color, 10%);
+      background-color: color.adjust($primary-color, $lightness: 10%);
     }
   }
 }
+ 

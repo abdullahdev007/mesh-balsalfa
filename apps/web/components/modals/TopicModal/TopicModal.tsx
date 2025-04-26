@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Modal from "react-modal";
 import styles from "./styles.module.scss";
 import { useTheme } from "@/context/ThemeContext";
@@ -7,20 +7,25 @@ import { FaCheck, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import Image from "next/image";
 import { IoArrowBack } from "react-icons/io5";
 import { useGameContext } from "@/context/GameContext";
+import toast from "react-hot-toast";
+import translateCategory from "@repo/game-core/dist/utils/translateCategory";
 
 interface TopicModalProps {
   isOpen: boolean;
   onClose: () => void;
-  topics: Topic[];
 }
 
-function TopicModal({ isOpen, onClose, topics }: TopicModalProps) {
+function TopicModal({ isOpen, onClose }: TopicModalProps) {
   const { theme } = useTheme();
   const [updateMode, setUpdateMode] = useState<TopicCategory | null>(null);
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
   const [editedTopicName, setEditedTopicName] = useState<string>("");
 
   const { online } = useGameContext();
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [newTopicName, setNewTopicName] = useState<string>("");
+  const [newTopicMode, setNewTopicMode] = useState<boolean>(false);
+
   const groupedTopics = topics.reduce(
     (acc, topic) => {
       const categoryName = topic.category;
@@ -32,15 +37,12 @@ function TopicModal({ isOpen, onClose, topics }: TopicModalProps) {
   );
 
   const removeTopic = (topic: Topic) => {
-    console.log("Remove topic:", topic);
+    online.removeTopic(topic.id);
   };
 
-  const addTopic = (category: string) => {
-    console.log("Add topic to category:", category);
-  };
-
-  const chooseCategory = (category: string) => {
-    console.log("Choose category:", category);
+  const chooseCategory = (category: TopicCategory) => {
+    online.chooseCategory(category);
+    onClose();
   };
 
   const toggleUpdateMode = (category: string) => {
@@ -64,22 +66,47 @@ function TopicModal({ isOpen, onClose, topics }: TopicModalProps) {
         return;
       }
 
-      // Clone the current topics and update the edited one
-      const updatedTopics = groupedTopics[updateMode]?.map((t: Topic) =>
-        t.id === topic.id ? { ...t, name: editedTopicName.trim() } : t
-      );
+      topic.name = editedTopicName;
 
-      console.log(updatedTopics);
+      online.updateTopic(topic!);
 
-      // Send updated list to backend
-      online.addTopic(updatedTopics!);
-
-      // Clear editing state
       setEditingTopicId(null);
       setEditedTopicName("");
     },
-    [updateMode, editedTopicName, groupedTopics, online]
+    [updateMode, editedTopicName, online]
   );
+
+  const submitNewTopic = useCallback(() => {
+    if (!newTopicName.trim()) {
+      toast.error("اسم السالفة الجديد فارغ");
+      setNewTopicName("");
+      return;
+    }
+    console.log(updateMode);
+    
+    const newTopic: Omit<Topic, "id"> = {
+      name: newTopicName,
+      category: updateMode! as TopicCategory,
+    };
+
+    online.addTopic(newTopic);
+    
+    // Reset input field
+    setNewTopicName("");
+    setNewTopicMode(false);
+  }, [newTopicName, updateMode, online]);
+
+  useEffect(() => {
+    online.setRoomInfoListener((roomInfo) => {
+      setTopics(roomInfo.topics);
+    });
+    
+    const room = online.roomInfo;
+    
+    if (room) {
+      setTopics(room.topics);
+    }
+  }, [online]);
 
   const customStyles: ReactModal.Styles = {
     content: {
@@ -135,11 +162,40 @@ function TopicModal({ isOpen, onClose, topics }: TopicModalProps) {
               <h3 className={styles.categoryTitle}>{updateMode}</h3>
               <button
                 className={styles.addTopic}
-                onClick={() => addTopic(updateMode)}
+                onClick={() => setNewTopicMode(!newTopicMode)}
               >
                 <FaPlus /> أضف سوالف جديدة
               </button>
             </div>
+
+          {newTopicMode ? (
+            <div
+              className={`
+                ${theme === "dark" ? styles.dark : styles.light}
+                ${styles.topicItem} 
+                ${styles.addTopicHolder}`}
+            >
+              <div>
+                <input
+                  type="text"
+                  value={newTopicName}
+                  onChange={(e) => setNewTopicName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") submitNewTopic();
+                  }}
+                  placeholder="أدخل اسم السالفة"
+                  autoFocus
+                  className={`${styles.topicInput} ${styles.editMode}`}
+                />
+              </div>
+
+              <button onClick={submitNewTopic}>
+                <FaCheck />
+              </button>
+            </div>
+
+          ) : <></>}
+
             {groupedTopics[updateMode]?.map((topic) => (
               <div
                 key={topic.id}
@@ -196,7 +252,7 @@ function TopicModal({ isOpen, onClose, topics }: TopicModalProps) {
                 alt={categoryName}
                 sizes="width:100%"
               />
-              <span className={styles.title}>{categoryName}</span>
+              <span className={styles.title}>{translateCategory(categoryName as TopicCategory)}</span>
               <div
                 className={styles.edit}
                 onClick={() => toggleUpdateMode(categoryName)}
@@ -206,7 +262,7 @@ function TopicModal({ isOpen, onClose, topics }: TopicModalProps) {
               </div>
               <div
                 className={styles.choose}
-                onClick={() => chooseCategory(categoryName)}
+                onClick={() => chooseCategory(categoryName as TopicCategory)}
               >
                 <FaCheck />
                 <span> أختيار السالفة</span>

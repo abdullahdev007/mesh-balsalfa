@@ -1,7 +1,8 @@
+@use "sass:color";
+
 .modal {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
   direction: rtl;
   overflow-y: auto;
   max-height: 700px;
@@ -34,7 +35,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  
 }
 
 .title {
@@ -49,7 +49,6 @@
   cursor: pointer;
 }
 
-// Body Styles for Category Boxes
 .body {
   display: flex;
   flex-wrap: wrap;
@@ -74,7 +73,6 @@
   img {
     filter: blur(4px);
   }
-  
 
   .title {
     position: relative;
@@ -88,15 +86,16 @@
     transform: scale(1.05);
     filter: blur(0);
 
-    .edit,.choose {
+    .edit,
+    .choose {
       opacity: 1;
-
     }
 
     .title {
-      transform:  scale(1.2);
+      transform: scale(1.2);
     }
   }
+
   .edit,
   .choose {
     position: absolute;
@@ -114,34 +113,38 @@
     font-weight: 500;
     cursor: pointer;
     transition: color 3s ease;
-
-
-
-
-
   }
 
   .edit {
     top: 0;
-    background: rgba(255, 165, 0, 0.7); 
-    backdrop-filter: blur(4px);
-
-
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 255, 213, 0.7),
+      rgba(0, 255, 213, 0.3),
+      rgba(0, 255, 213, 0)
+    );
   }
 
   .choose {
     bottom: 0;
-    background: rgba(0, 255, 0, 0.7); 
-    backdrop-filter: blur(4px);
+    background: linear-gradient(
+      to top,
+      rgba(0, 255, 0, 0.7),
+      rgba(0, 255, 0, 0.3),
+      rgba(0, 255, 0, 0)
+    );
+  }
 
-    
+  @media (hover: none) {
+    .edit,
+    .choose {
+      opacity: 1;
+    }
   }
 }
 
-
 .editMode {
   width: 100%;
-
 
   .header {
     display: flex;
@@ -150,7 +153,7 @@
   }
 
   .topicInput {
-    font-size: 1rem;
+    font-size: 1em;
     border: none;
     padding: 6px 8px;
     border-radius: 6px;
@@ -158,17 +161,18 @@
     background: transparent;
     color: #333;
     transition: all 0.3s ease;
-  
+
     &:focus {
       outline: none;
     }
   }
-  
+
   .topicItem {
     display: flex;
     justify-content: space-between;
     margin-bottom: 8px;
-    
+    align-items: center;
+
     &.dark {
       .topicInput {
         color: $light-color;
@@ -182,34 +186,30 @@
     color: #444;
     pointer-events: none;
   }
-  
+
   .editMode {
     border: 1px solid $primary-color;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
     pointer-events: auto;
 
-  
     &:focus {
-      box-shadow: 0 0 4px darken($color: $primary-color, $amount: 15);
+      box-shadow: 0 0 4px color.adjust($primary-color, $lightness: -15%);
     }
   }
 
-  
-  .topicActions button {
+  .topicActions button,
+  .addTopicHolder button {
     margin-left: 8px;
     background: none;
     border: none;
     cursor: pointer;
     font-size: 0.7em;
-
-    transition: .3s ease;
+    transition: 0.3s ease;
 
     &:hover {
       transform: scale(1.1);
       animation: rotateOnce 0.5s ease-in-out;
-
     }
-
 
     @keyframes rotateOnce {
       from {
@@ -220,37 +220,63 @@
       }
     }
   }
-  
+
   .addTopic {
     margin-top: 16px;
     display: flex;
     align-items: center;
     gap: 8px;
     background: $primary-color;
-
-    
     border: none;
     padding: 8px 12px;
     border-radius: 4px;
     cursor: pointer;
-    transition: .3s ease;
+    transition: 0.3s ease;
 
     &:hover {
-      background-color: lighten($color: $primary-color, $amount: 10);
+      background-color: color.adjust($primary-color, $lightness: 10%);
     }
   }
 
+  .addTopicHolder {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
 }
+
+@media screen and (max-width: 900px) {
+  .editMode {
+    font-size: 1.5em;
+  }
+}
+
 @media screen and (max-width: 600px) {
   .category {
     height: 200px;
-
     font-size: 1.3rem;
+  }
+
+  .editMode {
+    font-size: 1.8em;
   }
 }
 
 @media screen and (max-width: 490px) {
   .category {
     height: 175px;
+  }
+  .editMode {
+    font-size: 1em;
+  }
+}
+
+@media screen and (max-width: 300px) {
+  .editMode .header {
+    flex-direction: column;
+
+    h3 {
+      font-size: 2em;
+    }
   }
 }

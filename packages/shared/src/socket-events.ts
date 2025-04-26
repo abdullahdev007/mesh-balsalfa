@@ -17,6 +17,7 @@ export const ServerEvents = {
 
 
   TOPICS_UPDATED: "topics:updated",
+  TOPIC_CATEGORY_UPDATED: "topics:category_updated",
 
   VOTE_CASTED: "round:vote_casted",
   TOPIC_GUESSED: "round:topic_guessed",
@@ -40,9 +41,11 @@ export const ClientEvents = {
   ADD_TOPIC: "topics:add",
   REMOVE_TOPIC: "topics:remove",
   UPDATE_TOPIC: "topics:update",
+  UPDATE_TOIC_CATEGORY: "topics:category_update",
 
   START_VOTING: "round:start_voting", // start voting phase
-  CAST_VOTE: "round:start_vote", // cast vote 
+  CAST_VOTE: "round:start_vote", // cast vote
+   
 
   GUESS_TOPIC: "round:guess_topic",
 

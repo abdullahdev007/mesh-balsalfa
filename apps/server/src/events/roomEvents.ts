@@ -29,8 +29,7 @@ export const handleRoomEvents = (
       socket.join(room.id);
 
       // Construct RoomInfo object
-      
-      
+
       const roomInfo: RoomInfo = {
         id: room.id,
         adminID: room.admin.socketId,
@@ -41,8 +40,7 @@ export const handleRoomEvents = (
         topics: room.gameEngine.getTopics(),
         rounds: room.gameEngine.state.rounds,
       };
-      
-      
+
       // Emit RoomInfo to the creator only
       io.to(socket.id).emit(ServerEvents.ROOM_CREATED, { roomInfo });
     } catch (error) {
@@ -81,6 +79,7 @@ export const handleRoomEvents = (
   });
 
   // Join leave room events
+  
   socket.on(ClientEvents.JOIN_ROOM, (roomId: string) => {
     try {
       const player: Player | null = gameManager.getPlayerBySocketId(socket.id);
@@ -144,23 +143,26 @@ export const handleRoomEvents = (
 
   // Topics Events
 
-  socket.on(ClientEvents.ADD_TOPIC, (name: string, category: TopicCategory) => {
+  socket.on(ClientEvents.ADD_TOPIC, (newTopic: Omit<Topic, "id">) => {
     try {
       const player: Player | null = gameManager.getPlayerBySocketId(socket.id);
 
-      if (!player || roomsManager.getRoomById(player.room?.id ?? "")?.admin.id !== player.id)
+      if (
+        !player ||
+        roomsManager.getRoomById(player.room?.id ?? "")?.admin.id !== player.id
+      )
         return io.to(socket.id).emit(ServerEvents.ERROR, {
           message: "only room admin can edit topics",
         });
 
-      const room: Room =  player.room!;
+      const room: Room = player.room!;
 
       if (room.gameEngine.state.phase !== "lobby")
         return io.to(socket.id).emit(ServerEvents.ERROR, {
           message: "Edit topics are only available in the lobby",
         });
 
-      room.gameEngine.addTopic({ name, category });
+      room.gameEngine.addTopic(newTopic);
 
       io.to(room.id).emit(ServerEvents.TOPICS_UPDATED, {
         topics: room.gameEngine.getTopics(),
@@ -218,7 +220,7 @@ export const handleRoomEvents = (
           message: "Edit topics are only available in the lobby",
         });
 
-      room.gameEngine.up(newTopic);
+      room.gameEngine.updateTopic(newTopic);
 
       io.to(room.id).emit(ServerEvents.TOPICS_UPDATED, {
         topics: room.gameEngine.getTopics(),
@@ -231,6 +233,34 @@ export const handleRoomEvents = (
     }
   });
 
+  socket.on(ClientEvents.UPDATE_TOIC_CATEGORY, (category: TopicCategory) => {
+    try {
+      const player: Player | null = gameManager.getPlayerBySocketId(socket.id);
+
+      if (!player || player.room?.admin.id !== player.id)
+        return io.to(socket.id).emit(ServerEvents.ERROR, {
+          message: "only room admin can edit topics",
+        });
+
+      const room: Room = player.room;
+
+      if (room.gameEngine.state.phase !== "lobby")
+        return io.to(socket.id).emit(ServerEvents.ERROR, {
+          message: "Edit topics are only available in the lobby",
+        });
+
+      room.gameEngine.updateTopicCategory(category);
+
+      io.to(room.id).emit(ServerEvents.TOPIC_CATEGORY_UPDATED, {
+        category,
+      });
+    } catch (error) {
+      console.log("Error on change a topic cateogry ", error);
+      io.to(socket.id).emit(ServerEvents.ERROR, {
+        message: "something write wrong Please try again.",
+      });
+    }
+  });
 
   // Info events
 

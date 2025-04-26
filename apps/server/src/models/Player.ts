@@ -1,6 +1,5 @@
-import { nanoid } from "nanoid";
 import { Room } from ".";
-import { Player as GamePlayer } from '@repo/game-core';
+import { Player as GamePlayer, generateUserId } from '@repo/game-core';
 
 export class Player {
   public id: string;
@@ -11,7 +10,7 @@ export class Player {
     public name: string,
     public socketId: string
   ) {
-    this.id = this.generateUserId();
+    this.id = generateUserId();
     this.gamePlayer = this.createGamePlayer();
   }
 
@@ -24,9 +23,6 @@ export class Player {
     };
   }
 
-  private generateUserId(): string {
-    return nanoid(8);
-  }
 
   public isMatchingSocket = (socketId: string): boolean => {
     return this.socketId === socketId;

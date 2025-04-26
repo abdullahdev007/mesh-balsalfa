@@ -1,11 +1,11 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { GameEngine as OfflineGameEngine } from '@repo/game-core';
 import { io, Socket } from 'socket.io-client';
 import { OnlineGameEngine } from '@/game/Online';
 import { generateRandomUsername } from '@/utils/generateRandomUsername';
 import toast from 'react-hot-toast';
+import { OfflineGameEngine } from '@/game/Offline';
 
 type GameContextType = {
   online: OnlineGameEngine;
@@ -13,6 +13,7 @@ type GameContextType = {
   socket: Socket;
   username: string | null;
   setUsername: (username: string) => void;
+  clearGameEngines: () => void;
 };
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -36,7 +37,6 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     _setUsername(newUsername);
     localStorage.setItem('username', newUsername);
     toast.success('تم تحديث اسم المستخدم بنجاح');
-    
   };
 
   useEffect(() => {
@@ -66,6 +66,15 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     setOfflineEngine(new OfflineGameEngine());
   }, [socket]);
 
+  const clearGameEngines = () => {
+    if (!socket) return;
+    
+    onlineEngine?.cleanup();
+    
+    setOnlineEngine(new OnlineGameEngine(socket));
+    setOfflineEngine(new OfflineGameEngine());
+  };
+
   if (!socket || !onlineEngine || !offlineEngine) return null;
 
   return (
@@ -76,6 +85,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         socket,
         username,
         setUsername,
+        clearGameEngines,
       }}
     >
       {children}
