@@ -2,7 +2,7 @@ import { Server, Socket } from "socket.io";
 import { GameManager } from "./managers";
 import { handleRoomEvents } from "./events/roomEvents";
 import { handleRoundEvents } from "./events/roundEvents";
-import { ClientEvents } from "@repo/shared";
+import { ClientEvents, ServerEvents } from "@repo/shared";
 
 export const setupSocket = (io: Server) => {
   // Explicitly define io as Server
@@ -14,14 +14,24 @@ export const setupSocket = (io: Server) => {
 
     gameManager.addPlayer(socket.id, username || "Guest");
 
-    console.log("player joined :", username);
 
     handleRoomEvents(io, socket, gameManager);
     handleRoundEvents(io, socket, gameManager);
-    
+
+    // Handle username update
+    socket.on(ClientEvents.UPDATE_USERNAME, ({ username: newUsername }) => {
+      const player = gameManager.getPlayerBySocketId(socket.id);
+      
+      if (player) {
+        player.name = newUsername;
+        socket.handshake.query.username = newUsername;
+        io.to(socket.id).emit(ServerEvents.USERNAME_UPDATED, {
+          username: newUsername,
+        });
+      }
+    });
 
     socket.on("disconnect", () => {
-      console.log("player leaveed :", username);
       gameManager.removePlayer(socket.id);
     });
   });

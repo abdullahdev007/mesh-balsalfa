@@ -3,8 +3,8 @@ import Modal from "react-modal";
 import styles from "./styles.module.scss";
 import { useTheme } from "@/context/ThemeContext";
 import ReactModal from "react-modal";
-import { useGameContext } from "@/context/GameContext";
 import { generateUserId } from "@repo/game-core";
+import { useGame } from "@/context/GameContext";
 
 interface AddPlayerModalProps {
   isOpen: boolean;
@@ -14,12 +14,12 @@ interface AddPlayerModalProps {
 function AddPlayerModal({ isOpen, onClose }: AddPlayerModalProps) {
   const [username, setUsername] = useState("");
   const { theme } = useTheme();
-  const { offline } = useGameContext();
+  const { offline } = useGame();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim()) {
-      offline.gameEngine.addPlayer({
+      offline.addPlayer({
         username: username,
         id: generateUserId(),
       });

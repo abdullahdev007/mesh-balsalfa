@@ -1,7 +1,7 @@
 import { Player } from ".";
-import { customAlphabet } from "nanoid";
-import { GameEngine } from "@repo/game-core"
+import { GameEngine } from "@repo/game-core";
 import { RoundManager } from "../managers";
+
 export class Room {
   public players: Map<string, Player> = new Map();
   public id: string;
@@ -11,21 +11,19 @@ export class Room {
 
   constructor(admin: Player) {
     this.admin = admin;
-
     this.players.set(admin.id, admin);
-
-    this.id = this.generateRoomId();
-
+    this.id = Room.generateRoomId();
     this.gameEngine = new GameEngine();
-
     this.roundManager = new RoundManager(this);
+    admin.room = this;
   }
 
   // Method for creating room ID (example output: "MN2REC")
-  private generateRoomId(): string {
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; // A-Z & 0-9
-    const nanoid = customAlphabet(alphabet, 6);
-    return nanoid();
+  private static generateRoomId(): string {
+    const { customAlphabet } = require("nanoid");
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const generateId = customAlphabet(alphabet, 6);
+    return generateId();
   }
 
   // Add player to the room
@@ -38,7 +36,8 @@ export class Room {
     }
 
     // Add player to room
-    this.gameEngine.addPlayer(player.gamePlayer)
+    player.room = this;
+    this.gameEngine.addPlayer(player.gamePlayer);
     this.players.set(player.id, player);
   }
 
@@ -50,14 +49,23 @@ export class Room {
     }
 
     // Remove player from room
-    this.gameEngine.removePlayer(playerId)
+    const player = this.players.get(playerId);
+    if (player) {
+      player.room = undefined;
+    }
+    this.gameEngine.removePlayer(playerId);
     this.players.delete(playerId);
   }
 
-  //check if player in room 
-  public hasPlayer = (playerId: string): boolean =>  this.players.has(playerId);
+  //check if player in room
+  public hasPlayer = (playerId: string): boolean => this.players.has(playerId);
 
-
-
-  
+  public toJSON() {
+    return {
+      id: this.id,
+      admin: this.admin,
+      players: Array.from(this.players.values()),
+      gameEngine: this.gameEngine,
+    };
+  }
 }

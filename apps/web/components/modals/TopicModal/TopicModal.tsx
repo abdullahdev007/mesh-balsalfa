@@ -2,13 +2,14 @@ import React, { useState, useCallback, useEffect } from "react";
 import Modal from "react-modal";
 import styles from "./styles.module.scss";
 import { useTheme } from "@/context/ThemeContext";
-import { Topic, TopicCategory } from "@repo/game-core";
+import { GameEvent, Topic, TopicCategory } from "@repo/game-core";
 import { FaCheck, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import Image from "next/image";
 import { IoArrowBack } from "react-icons/io5";
-import { useGameContext } from "@/context/GameContext";
 import toast from "react-hot-toast";
-import translateCategory from "@repo/game-core/dist/utils/translateCategory";
+import { translateCategory } from "@repo/game-core";
+import { useGame } from "@/context/GameContext";
+import { OnlineEngineEvents } from "@/services/GameService";
 
 interface TopicModalProps {
   isOpen: boolean;
@@ -21,27 +22,88 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
   const [editingTopicId, setEditingTopicId] = useState<string | null>(null);
   const [editedTopicName, setEditedTopicName] = useState<string>("");
 
-  const { online } = useGameContext();
+  const { online, offline, mode } = useGame();
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [groupedTopics, setGroupedTopics] = useState<Record<string, Topic[]>>(
+    {}
+  );
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
   const [newTopicName, setNewTopicName] = useState<string>("");
   const [newTopicMode, setNewTopicMode] = useState<boolean>(false);
 
-  const groupedTopics = topics.reduce(
-    (acc, topic) => {
-      const categoryName = topic.category;
-      if (!acc[categoryName]) acc[categoryName] = [];
-      acc[categoryName].push(topic);
-      return acc;
-    },
-    {} as Record<string, Topic[]>
-  );
+  const groupTopics = useCallback((topicsToGroup: Topic[]) => {
+    return topicsToGroup.reduce(
+      (acc, topic) => {
+        const categoryName = topic.category;
+        if (!acc[categoryName]) acc[categoryName] = [];
+        acc[categoryName].push(topic);
+        return acc;
+      },
+      {} as Record<string, Topic[]>
+    );
+  }, []);
+
+  useEffect(() => {
+    const handleTopicsUpdate = (updatedTopics: Topic[]) => {
+      setTopics(updatedTopics || []);
+      setGroupedTopics(groupTopics(updatedTopics || []));
+    };
+
+    if (mode === "online") {
+      online.on(OnlineEngineEvents.TOPICS_UPDATED, handleTopicsUpdate);
+      const initialTopics = online.topics;
+      if (initialTopics && initialTopics.length > 0) {
+        setTopics(initialTopics);
+        setGroupedTopics(groupTopics(initialTopics));
+      }
+      setIsAdmin(online.isAdmin);
+    } else if (mode === "offline") {
+      offline.on(GameEvent.TOPICS_UPDATED, handleTopicsUpdate);
+      const initialTopics = offline.getTopics();
+      if (initialTopics && initialTopics.length > 0) {
+        setTopics(initialTopics);
+        setGroupedTopics(groupTopics(initialTopics));
+      }
+      setIsAdmin(true);
+    }
+
+    return () => {
+      if (mode === "online") {
+        online.off(OnlineEngineEvents.TOPICS_UPDATED, handleTopicsUpdate);
+      } else if (mode === "offline") {
+        offline.off(GameEvent.TOPICS_UPDATED, handleTopicsUpdate);
+      }
+    };
+  }, [online, offline, mode, groupTopics]);
 
   const removeTopic = (topic: Topic) => {
-    online.removeTopic(topic.id);
+    if (!isAdmin) {
+      toast.error("ليس لديك صلاحية حذف السوالف");
+      return;
+    }
+
+    const topicsInCategory = groupedTopics[topic.category] || [];
+
+    if (topicsInCategory.length <= 3) {
+      toast.error("لا يمكن حذف السالفة، يجب أن يكون هناك 3 سوالف على الأقل");
+      return;
+    }
+
+    if (mode === "online") {
+      online.removeTopic(topic.id);
+    } else if (mode === "offline") {
+      offline.removeTopic(topic.id);
+    }
   };
 
-  const chooseCategory = (category: TopicCategory) => {
-    online.chooseCategory(category);
+  const selectCategory = (category: TopicCategory) => {
+    if (mode === "online") {
+      online.selectCategory(category);
+    } else if (mode === "offline") {
+      offline.selectCategory(category);
+    }
+
     onClose();
   };
 
@@ -52,12 +114,21 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
   };
 
   const startEditing = (topic: Topic) => {
+    if (!isAdmin) {
+      toast.error("ليس لديك صلاحية تعديل السوالف");
+      return;
+    }
     setEditingTopicId(topic.id);
     setEditedTopicName(topic.name);
   };
 
   const submitEdit = useCallback(
     (topic: Topic) => {
+      if (!isAdmin) {
+        toast.error("ليس لديك صلاحية تعديل السوالف");
+        return;
+      }
+
       if (!updateMode) return;
 
       if (editedTopicName.trim() === topic.name.trim()) {
@@ -66,47 +137,60 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
         return;
       }
 
-      topic.name = editedTopicName;
+      if (!editedTopicName.trim()) {
+        toast.error("اسم السالفة فارغ");
+        return;
+      }
 
-      online.updateTopic(topic!);
+      if (mode === "online") {
+        online.updateTopic({
+          ...topic,
+          name: editedTopicName,
+        });
+      } else if (mode === "offline") {
+        offline.updateTopic({
+          ...topic,
+          name: editedTopicName,
+        });
+      }
 
       setEditingTopicId(null);
       setEditedTopicName("");
     },
-    [updateMode, editedTopicName, online]
+    [updateMode, editedTopicName, online, offline, isAdmin, mode]
   );
 
   const submitNewTopic = useCallback(() => {
+    if (!isAdmin) {
+      toast.error("ليس لديك صلاحية إضافة سوالف جديدة");
+      return;
+    }
+
     if (!newTopicName.trim()) {
       toast.error("اسم السالفة الجديد فارغ");
       setNewTopicName("");
       return;
     }
-    console.log(updateMode);
-    
+
+    if (!updateMode) {
+      toast.error("يجب اختيار فئة السالفة");
+      return;
+    }
+
     const newTopic: Omit<Topic, "id"> = {
       name: newTopicName,
-      category: updateMode! as TopicCategory,
+      category: updateMode,
     };
 
-    online.addTopic(newTopic);
-    
-    // Reset input field
+    if (mode === "online") {
+      online.addTopic(newTopic);
+    } else if (mode === "offline") {
+      offline.addTopic(newTopic);
+    }
+
     setNewTopicName("");
     setNewTopicMode(false);
-  }, [newTopicName, updateMode, online]);
-
-  useEffect(() => {
-    online.setRoomInfoListener((roomInfo) => {
-      setTopics(roomInfo.topics);
-    });
-    
-    const room = online.roomInfo;
-    
-    if (room) {
-      setTopics(room.topics);
-    }
-  }, [online]);
+  }, [newTopicName, updateMode, online, offline, isAdmin, mode]);
 
   const customStyles: ReactModal.Styles = {
     content: {
@@ -159,47 +243,51 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
         {updateMode ? (
           <div className={styles.editMode}>
             <div className={styles.header}>
-              <h3 className={styles.categoryTitle}>{updateMode}</h3>
-              <button
-                className={styles.addTopic}
-                onClick={() => setNewTopicMode(!newTopicMode)}
+              <h3 className={styles.categoryTitle}>
+                {translateCategory(updateMode)}
+              </h3>
+              {isAdmin && (
+                <button
+                  className={styles.addTopic}
+                  onClick={() => setNewTopicMode(!newTopicMode)}
+                >
+                  <FaPlus /> أضف سوالف جديدة
+                </button>
+              )}
+            </div>
+
+            {newTopicMode && isAdmin ? (
+              <div
+                className={`${
+                  theme === "dark" ? styles.dark : styles.light
+                } ${styles.topicItem} ${styles.addTopicHolder}`}
               >
-                <FaPlus /> أضف سوالف جديدة
-              </button>
-            </div>
+                <div>
+                  <input
+                    type="text"
+                    value={newTopicName}
+                    onChange={(e) => setNewTopicName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") submitNewTopic();
+                    }}
+                    placeholder="أدخل اسم السالفة"
+                    autoFocus
+                    className={`${styles.topicInput} ${styles.editMode}`}
+                  />
+                </div>
 
-          {newTopicMode ? (
-            <div
-              className={`
-                ${theme === "dark" ? styles.dark : styles.light}
-                ${styles.topicItem} 
-                ${styles.addTopicHolder}`}
-            >
-              <div>
-                <input
-                  type="text"
-                  value={newTopicName}
-                  onChange={(e) => setNewTopicName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") submitNewTopic();
-                  }}
-                  placeholder="أدخل اسم السالفة"
-                  autoFocus
-                  className={`${styles.topicInput} ${styles.editMode}`}
-                />
+                <button onClick={submitNewTopic}>
+                  <FaCheck />
+                </button>
               </div>
-
-              <button onClick={submitNewTopic}>
-                <FaCheck />
-              </button>
-            </div>
-
-          ) : <></>}
+            ) : null}
 
             {groupedTopics[updateMode]?.map((topic) => (
               <div
                 key={topic.id}
-                className={`${theme === "dark" ? styles.dark : styles.light} ${styles.topicItem}`}
+                className={`${
+                  theme === "dark" ? styles.dark : styles.light
+                } ${styles.topicItem}`}
               >
                 <div className={styles.topicContent}>
                   <input
@@ -213,9 +301,10 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
                       editingTopicId === topic.id ? editedTopicName : topic.name
                     }
                     onChange={(e) => setEditedTopicName(e.target.value)}
-                    readOnly={editingTopicId !== topic.id}
+                    readOnly={editingTopicId !== topic.id || !isAdmin}
                     onClick={() => {
-                      if (editingTopicId !== topic.id) startEditing(topic);
+                      if (editingTopicId !== topic.id && isAdmin)
+                        startEditing(topic);
                     }}
                     autoFocus={editingTopicId === topic.id}
                     onKeyDown={(e) => {
@@ -224,49 +313,67 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
                   />
                 </div>
 
-                <div className={styles.topicActions}>
-                  {editingTopicId === topic.id ? (
-                    <button onClick={() => submitEdit(topic)}>
-                      <FaCheck />
-                    </button>
-                  ) : (
-                    <>
-                      <button onClick={() => startEditing(topic)}>
-                        <FaEdit />
+                {isAdmin && (
+                  <div className={styles.topicActions}>
+                    {editingTopicId === topic.id ? (
+                      <button onClick={() => submitEdit(topic)}>
+                        <FaCheck />
                       </button>
-                      <button onClick={() => removeTopic(topic)}>
-                        <FaTrash />
-                      </button>
-                    </>
-                  )}
-                </div>
+                    ) : (
+                      <>
+                        <button onClick={() => startEditing(topic)}>
+                          <FaEdit />
+                        </button>
+                        <button onClick={() => removeTopic(topic)}>
+                          <FaTrash />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         ) : (
           Object.keys(groupedTopics).map((categoryName) => (
-            <div className={styles.category} key={categoryName}>
+            <div
+              className={styles.category}
+              key={categoryName}
+              onClick={() => {
+                if (isAdmin) {
+                  selectCategory(categoryName as TopicCategory);
+                } else {
+                  toggleUpdateMode(categoryName);
+                }
+              }}
+            >
               <Image
                 src={`/images/topics/${categoryName}.png`}
                 fill
                 alt={categoryName}
                 sizes="width:100%"
               />
-              <span className={styles.title}>{translateCategory(categoryName as TopicCategory)}</span>
-              <div
-                className={styles.edit}
-                onClick={() => toggleUpdateMode(categoryName)}
-              >
-                <FaEdit />
-                <span> تعديل السوالف</span>
-              </div>
-              <div
-                className={styles.choose}
-                onClick={() => chooseCategory(categoryName as TopicCategory)}
-              >
-                <FaCheck />
-                <span> أختيار السالفة</span>
-              </div>
+              <span className={styles.title}>
+                {translateCategory(categoryName as TopicCategory)}
+              </span>
+              {isAdmin && (
+                <>
+                  <div
+                    className={styles.edit}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleUpdateMode(categoryName);
+                    }}
+                  >
+                    <FaEdit />
+                    تعديل
+                  </div>
+                  <div className={styles.choose}>
+                    <FaEdit />
+                    اختيار
+                  </div>
+                </>
+              )}
             </div>
           ))
         )}

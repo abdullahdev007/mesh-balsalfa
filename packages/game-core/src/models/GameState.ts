@@ -8,7 +8,7 @@ export interface GameState {
   rounds: Round[];
   totalScores: ScoreEntry[];
   phase: GamePhase;
-  selectedTopicCategory: TopicCategory | undefined;
+  selectedCategory: TopicCategory | undefined;
 }
 
 export interface Round {

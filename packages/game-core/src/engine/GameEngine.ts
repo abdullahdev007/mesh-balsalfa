@@ -17,7 +17,7 @@ import {
   QuestionSystem,
   TopicManager,
   RoleSystem,
-} from "../mechanics";
+} from "../mechanics/index";
 
 export class GameEngine extends EventEmitter {
   private stateManager: GameStateManager;
@@ -40,7 +40,6 @@ export class GameEngine extends EventEmitter {
   public addPlayer(player: Omit<Player, "score" | "role">): void {
     try {
       this.stateManager.addPlayer(player);
-
 
       this.emit(GameEvent.PLAYER_JOINED, player);
     } catch (error) {
@@ -83,11 +82,11 @@ export class GameEngine extends EventEmitter {
     }
   }
 
-  public updateTopicCategory = (topicCategory: TopicCategory) => {
+  public selectCategory = (topicCategory: TopicCategory) => {
     try {
-      this.stateManager.updateState({ selectedTopicCategory: topicCategory });
+      this.stateManager.updateState({ selectedCategory: topicCategory });
 
-      this.emit(GameEvent.STATE_UPDATED, this.stateManager.state);
+      this.emit(GameEvent.CATEGORY_CHANGED, topicCategory);
     } catch (error) {
       console.log(`Error on update topic category: ${error}`);
       this.emit(GameEvent.ERROR, error);
@@ -146,7 +145,7 @@ export class GameEngine extends EventEmitter {
       // Assign roles and get random topic
       const updatedPlayers: Player[] = this.roleSystem.assignRoles(players);
       const topic: Topic = this.topicManager.getRandomTopic(
-        this.stateManager.state.selectedTopicCategory
+        this.stateManager.state.selectedCategory
       );
 
       // update state and start new round

@@ -20,7 +20,7 @@ export class GameStateManager {
       rounds: [],
       totalScores: [],
       phase: "lobby",
-      selectedTopicCategory: undefined,
+      selectedCategory: undefined,
       ...initialState,
     };
   }

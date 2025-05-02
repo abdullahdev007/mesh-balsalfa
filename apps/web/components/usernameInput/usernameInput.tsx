@@ -4,17 +4,19 @@ import { useTheme } from "@/context/ThemeContext";
 import { LuRefreshCw } from "react-icons/lu";
 import { Tooltip } from "react-tooltip";
 import { generateRandomUsername } from "@/utils/generateRandomUsername";
-import { useGameContext } from "@/context/GameContext";
+import { useGame } from "@/context/GameContext";
 
 const UsernameInput = () => {
   const { theme } = useTheme();
+  const { username, setUsername } = useGame();
 
   const [tempUsername, setTempUsername] = useState("");
   const [isRotating, setIsRotating] = useState(false);
-  const { username, setUsername } = useGameContext();
 
   useEffect(() => {
-    if (username) setTempUsername(username);
+    if (username) {
+      setTempUsername(username);
+    }
   }, [username]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,7 +25,7 @@ const UsernameInput = () => {
 
   const handleBlur = () => {
     setUsername(tempUsername);
-    setTempUsername(username!);
+    setTempUsername(username || "");
   };
 
   const handleRefresh = () => {

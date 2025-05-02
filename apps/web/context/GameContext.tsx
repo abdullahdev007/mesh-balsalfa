@@ -1,91 +1,97 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { OnlineGameEngine } from '@/game/Online';
-import { generateRandomUsername } from '@/utils/generateRandomUsername';
-import toast from 'react-hot-toast';
-import { OfflineGameEngine } from '@/game/Offline';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { OnlineGameSystem } from "../services/GameService";
+import toast from "react-hot-toast";
+import { GameEngine } from "@repo/game-core";
+import { useRouter } from "next/navigation";
+import { generateRandomUsername } from "@/utils/generateRandomUsername";
+
+type GameMode = "online" | "offline";
 
 type GameContextType = {
-  online: OnlineGameEngine;
-  offline: OfflineGameEngine;
-  socket: Socket;
+  mode: GameMode;
+  setMode: (mode: GameMode) => void;
+  online: OnlineGameSystem;
+  offline: GameEngine;
   username: string | null;
   setUsername: (username: string) => void;
-  clearGameEngines: () => void;
+  cleanupOfflineGameEngine: () => void;
 };
 
 const GameContext = createContext<GameContextType | null>(null);
 
-export const GameProvider = ({ children }: { children: ReactNode }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [onlineEngine, setOnlineEngine] = useState<OnlineGameEngine | null>(null);
-  const [offlineEngine, setOfflineEngine] = useState<OfflineGameEngine | null>(null);
-  const [username, _setUsername] = useState<string | null>(null);
+export const GameProvider = ({ children }: { children: React.ReactNode }) => {
+  const [mode, setMode] = useState<GameMode>("online");
+  const router = useRouter();
+  const [username, setUsername] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const storedUsername = localStorage.getItem("username");
+      if (!storedUsername) {
+        const randomUsername = generateRandomUsername();
+        localStorage.setItem("username", randomUsername);
+        return randomUsername;
+      }
+      return storedUsername;
+    }
+    return null;
+  });
+  const [gameSystems, setGameSystems] = useState<{
+    online: OnlineGameSystem;
+    offline: GameEngine;
+  } | null>(null);
 
-  // Validate and set username
-  const validateUsername = (username: string): boolean => {
-    if (username.length >= 4 && username.length <= 12) return true;
-    toast.error('اسم المستخدم يجب أن يكون بين 4 و 12 حرفًا');
-    return false;
+  const validateAndSetUsername = async (newUsername: string) => {
+    if (username === newUsername) return;
+
+    if (newUsername.length < 4 || newUsername.length > 12) {
+      toast.error("اسم المستخدم يجب ان يكون بين 4 -12 حرف");
+      return;
+    }
+
+    setUsername(newUsername);
+    toast.success("تم تغيير اسم المستخدم بنجاح");
   };
 
-  const setUsername = (newUsername: string) => {
-    if (!validateUsername(newUsername)) return;
-
-    _setUsername(newUsername);
-    localStorage.setItem('username', newUsername);
-    toast.success('تم تحديث اسم المستخدم بنجاح');
+  const cleanupOfflineGameEngine = () => {
+      gameSystems?.offline.removeAllListeners();
+      setGameSystems((prev) => ({
+        ...prev!,
+        offline: new GameEngine(),
+      }));
   };
 
-  useEffect(() => {
-    const savedUsername = localStorage.getItem('username') || generateRandomUsername();
-    _setUsername(savedUsername);
-  }, []);
 
   useEffect(() => {
-    if (!username) return;
-
-    const socketInstance = io(process.env.NEXT_PUBLIC_SERVER_URL!, {
-      withCredentials: true,
-      query: { username },
+    setGameSystems({
+      online: new OnlineGameSystem(username || "Guest", router),
+      offline: new GameEngine(),
     });
-
-    setSocket(socketInstance);
-
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, [username]);
+  }, [router]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (username) {
+      localStorage.setItem("username", username);
+      gameSystems?.online.updateUsername(username);
+    } else {
+      localStorage.removeItem("username");
+    }
+  }, [gameSystems?.online, username]);
 
-    setOnlineEngine(new OnlineGameEngine(socket));
-    setOfflineEngine(new OfflineGameEngine());
-  }, [socket]);
-
-  const clearGameEngines = () => {
-    if (!socket) return;
-    
-    onlineEngine?.cleanup();
-    
-    setOnlineEngine(new OnlineGameEngine(socket));
-    setOfflineEngine(new OfflineGameEngine());
-  };
-
-  if (!socket || !onlineEngine || !offlineEngine) return null;
+  if (!gameSystems) {
+    return null; // Or a loading state if you prefer
+  }
 
   return (
     <GameContext.Provider
       value={{
-        online: onlineEngine,
-        offline: offlineEngine,
-        socket,
+        mode,
+        setMode,
+        online: gameSystems.online,
+        offline: gameSystems.offline,
         username,
-        setUsername,
-        clearGameEngines,
+        setUsername: validateAndSetUsername,
+        cleanupOfflineGameEngine,
       }}
     >
       {children}
@@ -93,8 +99,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useGameContext = () => {
+export const useGame = () => {
   const context = useContext(GameContext);
-  if (!context) throw new Error('useGameContext must be used within a GameProvider');
+  if (!context) {
+    throw new Error("useGame must be used within a GameProvider");
+  }
   return context;
 };

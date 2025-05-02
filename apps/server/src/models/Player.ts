@@ -1,5 +1,5 @@
 import { Room } from ".";
-import { Player as GamePlayer, generateUserId } from '@repo/game-core';
+import { Player as GamePlayer, generateUserId } from "@repo/game-core";
 
 export class Player {
   public id: string;
@@ -15,14 +15,13 @@ export class Player {
   }
 
   private createGamePlayer(): GamePlayer {
-    return  {
+    return {
       id: this.id,
-      name: this.name,
+      username: this.name,
       role: undefined,
-      score: 0
+      score: 0,
     };
   }
-
 
   public isMatchingSocket = (socketId: string): boolean => {
     return this.socketId === socketId;
@@ -41,12 +40,12 @@ export class Player {
       }
 
       // join to room
-      this.room = newRoom;
-      this.room.addPlayer(this);
-
-      
-    } catch {
-      console.log(`error on join ${this.id} player to ${newRoom.id} room`);
+      newRoom.addPlayer(this);
+    } catch (error) {
+      console.log(
+        `error on join ${this.id} player to ${newRoom.id} room :`,
+        error
+      );
       throw new Error(`error on join player to room`);
     }
   }
@@ -65,5 +64,15 @@ export class Player {
       console.log(`error on leave ${this.id} player to ${this.room?.id} room`);
       throw new Error(`error on leave player from room`);
     }
+  }
+
+  public toJSON() {
+    return {
+      id: this.id,
+      name: this.name,
+      socketId: this.socketId,
+      gamePlayer: this.gamePlayer,
+      roomId: this.room?.id,
+    };
   }
 }

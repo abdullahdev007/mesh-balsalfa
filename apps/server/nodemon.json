@@ -1,5 +1,7 @@
 {
   "watch": ["dist"],
   "ext": "js,json",
-  "exec": "node dist/server.js"
+  "exec": "node dist/server.js",
+    "ignore": ["src", "**/*.ts"],
+  "delay": "200"
 }

@@ -43,7 +43,7 @@ export class RoomsManager {
   }
 
   // Method to find a room by its ID
-  getRoomById(roomId: string): Room | undefined {
+  getRoomById(roomId: string): Room {
     try {
       const room = this.rooms.find((room: Room) => room.id === roomId);
       if (!room) {

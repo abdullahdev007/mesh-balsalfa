@@ -9,64 +9,89 @@ import AddPlayerModal from "@/components/modals/addPlayerModal/addPlayerModal";
 
 import TopicModal from "@/components/modals/TopicModal/TopicModal";
 import { useRouter } from "next/navigation";
-import { playSound } from "@/utils/soundPlayer";
-import { useGameContext } from "@/context/GameContext";
-import { GameEvent, Round, TopicCategory } from "@repo/game-core";
-import translateCategory from "@repo/game-core/dist/utils/translateCategory";
+import {  GameEvent, Round, TopicCategory } from "@repo/game-core";
+import { useGame } from "@/context/GameContext";
+import { translateCategory } from "@repo/game-core";
+import { OnlineEngineEvents } from "@/services/GameService";
 
 const WaitingPage = ({ params }: { params: Promise<{ mode: string }> }) => {
   const { mode } = use(params);
   const router = useRouter();
+  const { theme } = useTheme();
 
   const [tooltipText, setTooltipText] = useState("أضغط ل النسخ");
   const [isAddPlayerModalOpen, setIsAddPlayerModalOpen] = useState(false);
 
   const [isTopicsModalOpen, setIsTopicsModalOpen] = useState(false);
 
-  const { socket, online, offline,clearGameEngines } = useGameContext();
+  const { online, offline, cleanupOfflineGameEngine } = useGame();
 
-  const [isAdmin, setIsAdmin] = useState<boolean>();
 
-  const [choosedCategory, setChoosedCategory] = useState<TopicCategory>();
-  const [players, setPlayers] = useState<{ id: string; username: string }[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<TopicCategory>(
+    mode === "online"
+      ? online.selectedCategory
+      : (offline.state.selectedCategory ?? "animals")
+  );
+
+  const [players, setPlayers] = useState<{ id: string; username: string }[]>(
+    mode === "online" ? online.players : offline.state.players
+  );
+
   const [rounds, setRounds] = useState<Round[]>([]);
-  const { theme } = useTheme();
-
-  useEffect(() => {
-    online.setCategoryListener((category) => {
-      setChoosedCategory(category);
-    });
-
-    setPlayers(online.roomInfo?.players || []);
-    setRounds(online.roomInfo?.rounds || []);
-    setIsAdmin(online.roomInfo?.adminID === socket!.id);
-
-    setChoosedCategory(online.choosedCategory);
-  }, [online, socket]);
-
-  useEffect(() => {
-    const handlePlayerJoined = (player: { id: string; username: string }) => {
-      setPlayers((prevPlayers) => [...prevPlayers, player]);
-    };
-
-    const handleRoundEnded = (round: Round) => {
-      setRounds((prevRounds) => [...prevRounds, round]);
-    };
-
-    offline.gameEngine.on(GameEvent.PLAYER_JOINED, handlePlayerJoined);
-    offline.gameEngine.on(GameEvent.ROUND_ENDED, handleRoundEnded);
-
-    return () => {
-      offline.gameEngine.off(GameEvent.PLAYER_JOINED, handlePlayerJoined);
-      offline.gameEngine.off(GameEvent.ROUND_ENDED, handleRoundEnded);
-    };
-  }, [offline.gameEngine]);
 
   useEffect(() => {
     if (mode !== "online" && mode !== "offline") {
       router.push("/");
     }
-  }, [mode, router]);
+    if (mode === "online" && !online.roomID) {
+      router.push("/");
+    }
+  }, [mode, router, online.roomID]);
+
+  useEffect(() => {
+    const handleCategoryUpdate = (category: TopicCategory) => {
+      setSelectedCategory(category);
+    };
+
+    const handlePlayersUpdate = (
+      players: { id: string; username: string }[]
+    ) => {
+      setPlayers([...players]);
+    };
+
+    
+    if (mode === "online") {
+      online.on(OnlineEngineEvents.TOPIC_CATEGORY_UPDATED, handleCategoryUpdate);
+      online.on(OnlineEngineEvents.PLAYERS_UPDATED, handlePlayersUpdate);
+    } else if (mode === "offline") {  
+      offline.on(GameEvent.CATEGORY_CHANGED, handleCategoryUpdate);
+    }
+
+    return () => {
+      if (mode === "online") {
+        online.off(
+          OnlineEngineEvents.TOPIC_CATEGORY_UPDATED,
+        handleCategoryUpdate
+      );
+      online.off(OnlineEngineEvents.PLAYERS_UPDATED, handlePlayersUpdate);
+      } else if (mode === "offline") {
+        offline.off(GameEvent.CATEGORY_CHANGED, handleCategoryUpdate);
+      }
+    };
+  }, [online,offline,mode]);
+
+  useEffect(() => {
+
+    const handleCategoryUpdate = (category: TopicCategory) => {
+      setSelectedCategory(category);
+    };
+
+    return () => {
+      if (mode === "offline") {
+        offline.off(GameEvent.CATEGORY_CHANGED, handleCategoryUpdate);
+      }
+    };
+  }, [offline]);
 
   if (mode !== "online" && mode !== "offline") {
     return null;
@@ -80,9 +105,8 @@ const WaitingPage = ({ params }: { params: Promise<{ mode: string }> }) => {
     setIsTopicsModalOpen(false);
   };
 
-
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(online.roomInfo?.id ?? "");
+    await navigator.clipboard.writeText(online.roomID ?? "");
     setTooltipText("تم النسخ");
 
     setTimeout(() => {
@@ -91,11 +115,15 @@ const WaitingPage = ({ params }: { params: Promise<{ mode: string }> }) => {
   };
 
   const handleLeaveGame = () => {
-
-    clearGameEngines();
     router.back();
-    playSound("click.wav");
+    if (mode === "online") {
+      online.leaveRoom();
+    } else if (mode === "offline") {
+      cleanupOfflineGameEngine();
+    }
   };
+
+  const handleStartRound = () => {};
 
   return (
     <div className={styles.container}>
@@ -109,7 +137,7 @@ const WaitingPage = ({ params }: { params: Promise<{ mode: string }> }) => {
               data-tooltip-content={tooltipText}
               onClick={handleCopy}
             >
-              {online.roomInfo?.id}
+              {online?.roomID}
             </span>
 
             <Tooltip id="roomID-tooltip" style={{ fontSize: "15px" }} />
@@ -121,10 +149,10 @@ const WaitingPage = ({ params }: { params: Promise<{ mode: string }> }) => {
         <div
           className={styles.topicSelect}
           style={{
-            backgroundImage: `url("/images/topics/${choosedCategory ?? "animals"}.png")`,
+            backgroundImage: `url("/images/topics/${selectedCategory ?? "animals"}.png")`,
           }}
         >
-          <span>{translateCategory(choosedCategory!) ?? choosedCategory}</span>
+          <span>{translateCategory(selectedCategory) ?? selectedCategory}</span>
 
           <button
             className={styles.updateTopic}
@@ -157,7 +185,7 @@ const WaitingPage = ({ params }: { params: Promise<{ mode: string }> }) => {
           >
             <span className={styles.title}>اللاعبين</span>
 
-            {mode === "offline"  && players.length === 0 ? (
+            {mode === "offline" && players.length === 0 ? (
               <div className={styles.noPlayerYet}>
                 {" "}
                 <span>لم تضف اي لاعب بعد</span>
@@ -223,7 +251,7 @@ const WaitingPage = ({ params }: { params: Promise<{ mode: string }> }) => {
                         {Object.entries(round.votes).map(
                           ([string, voteResult]) => (
                             <span key={string} className={styles.vote}>
-                              {`${online.roomInfo?.players.find((p) => p.id == voteResult.voterID)?.username} -> ${online.roomInfo?.players.find((p) => p.id == voteResult.suspectID)?.username}`}
+                              {`${players.find((p) => p.id == voteResult.voterID)?.username} -> ${players.find((p) => p.id == voteResult.suspectID)?.username}`}
                             </span>
                           )
                         )}
@@ -237,7 +265,9 @@ const WaitingPage = ({ params }: { params: Promise<{ mode: string }> }) => {
         </div>
 
         <div className={styles.buttonsGroup}>
-          <span className={styles.startRound}>بدء الجولة</span>
+          <span className={styles.startRound} onClick={handleStartRound}>
+            بدء الجولة
+          </span>
           <span className={styles.leaveGame} onClick={handleLeaveGame}>
             {mode === "online" ? "ترك الغرفة" : "انهاء اللعبة"}
           </span>

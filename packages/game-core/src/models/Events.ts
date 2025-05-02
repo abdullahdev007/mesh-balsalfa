@@ -8,5 +8,6 @@ export enum GameEvent {
   ROUND_ENDED = "roundEnded",
   STATE_UPDATED= "stateUpdated",
   TOPICS_UPDATED= "topicsUpdated",
+  CATEGORY_CHANGED= "categoryChanged",
   ERROR = "error"
 }
