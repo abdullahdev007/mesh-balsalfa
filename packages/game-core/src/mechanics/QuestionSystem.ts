@@ -1,5 +1,4 @@
-import { threadId } from "worker_threads";
-import { Player, Question } from "../models";
+import { Player, Question } from "../models/index.js";
 
 export class QuestionSystem {
   private questionOrder: Player[] = [];
@@ -14,16 +13,25 @@ export class QuestionSystem {
   }
 
   public setupQuestionOrder(players: Player[]): void {
-    this.questionOrder = this.shuffleArray(players);
+    if (!players || !Array.isArray(players)) {
+      throw new Error('Invalid players array provided to setupQuestionOrder');
+    }
+    this.questionOrder = this.shuffleArray([...players]);
     this.currentQuestionIndex = 0;
   }
 
-  public getNextQuestion(askerPlayerID: string): Question | undefined {
+  private shuffleArray<T>(array: T[]): T[] {
+    if (!array || !Array.isArray(array)) {
+      throw new Error('Invalid array provided to shuffleArray');
+    }
+    return [...array].sort(() => Math.random() - 0.5);
+  }
+
+  public getNextQuestion(): Question | undefined {
     if (this.thisLastQuestion) return;
 
-    const asker = this.questionOrder[this.currentQuestionIndex]!;
+    const asker: Player = this.questionOrder[this.currentQuestionIndex]!;
 
-    if (asker.id !== askerPlayerID) throw new Error("is not asker player turn");
 
     const target =
       this.questionOrder[
@@ -32,10 +40,6 @@ export class QuestionSystem {
 
     this.currentQuestionIndex++;
     return { asker, target };
-  }
-
-  private shuffleArray<T>(array: T[]): T[] {
-    return array.sort(() => Math.random() - 0.5);
   }
 
   public thisCurrentAsker(playerID: string) {

@@ -1,5 +1,6 @@
 {
+  "verbose": true,
   "watch": ["dist"],
-  "ext": "js,json",
-  "exec": "node dist/index.js"
+  "ext": "js",
+  "exec": "node dist/server.js"
 }

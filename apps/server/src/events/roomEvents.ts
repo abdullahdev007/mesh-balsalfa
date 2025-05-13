@@ -1,6 +1,6 @@
 import { Socket, Server } from "socket.io";
-import { RoomsManager, GameManager } from "../managers";
-import { Player, Room } from "../models";
+import { RoomsManager, GameManager } from "../managers/index.js";
+import { Player, Room } from "../models/index.js";
 
 import {
   ClientEvents,
@@ -9,7 +9,7 @@ import {
   ServerErrorType,
   SERVER_ERROR_MESSAGES,
   SERVER_MESSAGES,
-} from "@repo/shared";
+} from "@repo/shared/dist/index.js";
 import { Topic, TopicCategory } from "@repo/game-core";
 
 export const handleRoomEvents = (
@@ -20,6 +20,7 @@ export const handleRoomEvents = (
   const roomsManager: RoomsManager = gameManager.roomsManager;
 
   // Create Destroy events
+  
   socket.on(ClientEvents.CREATE_ROOM, () => {
     try {
       const admin: Player | null = gameManager.getPlayerBySocketId(socket.id);
@@ -39,7 +40,7 @@ export const handleRoomEvents = (
       // Construct RoomInfo object
       const roomInfo: RoomInfo = {
         id: room.id,
-        adminID: room.admin.socketId,
+        adminID: room.admin.id,
         players: Array.from(room.players.entries()).map(([id, p]) => ({
           id,
           username: p.name,
@@ -48,7 +49,10 @@ export const handleRoomEvents = (
         rounds: room.gameEngine.state.rounds,
       };
 
-      io.to(socket.id).emit(ServerEvents.ROOM_CREATED, roomInfo);
+      io.to(socket.id).emit(ServerEvents.ROOM_CREATED, {
+        roomInfo,
+        playerID: admin.id,
+      });
     } catch (error) {
       console.log("error", error);
       io.to(socket.id).emit(ServerEvents.ERROR, {
@@ -59,6 +63,7 @@ export const handleRoomEvents = (
   });
 
   // Join leave room events
+
   socket.on(
     ClientEvents.JOIN_ROOM,
     (roomID: string, callback?: (response: any) => void) => {
@@ -88,6 +93,22 @@ export const handleRoomEvents = (
           return;
         }
 
+        // Check for duplicate username
+        let nameChanged = false;
+        let originalName = player!.name;
+        let newName = originalName;
+
+        while (
+          Array.from(room!.players.values()).some((p) => p.name === newName)
+        ) {
+          newName = `${originalName}_${player?.id}`;
+          nameChanged = true;
+        }
+
+        if (nameChanged) {
+          player!.name = newName;
+        }
+
         player?.joinRoom(room);
         socket.join(roomID);
 
@@ -108,7 +129,15 @@ export const handleRoomEvents = (
           player: { id: player?.id, username: player?.name },
         });
 
-        if (callback) callback({ success: true, roomInfo });
+        if (callback)
+          callback({
+            success: true,
+            roomInfo,
+            playerID: player?.id,
+            nameChanged: nameChanged
+              ? `بسبب وجود لاعب ب اسم ${originalName} في الغرفة في الفعل سيتم تغير اسمك الى ${newName}`
+              : null,
+          });
       } catch (error) {
         console.error("Error on join room:", error);
         const errorPayload = {
@@ -178,6 +207,7 @@ export const handleRoomEvents = (
   });
 
   // Topics Events
+
   socket.on(ClientEvents.ADD_TOPIC, (newTopic: Omit<Topic, "id">) => {
     try {
       const player: Player | null = gameManager.getPlayerBySocketId(socket.id);

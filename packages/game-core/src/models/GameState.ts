@@ -1,5 +1,5 @@
-import { Player } from "./Player";
-import { Topic, TopicCategory } from "./Topic";
+import { Player } from "./Player.js";
+import { Topic, TopicCategory } from "./Topic.js";
 
 export interface GameState {
   players: Player[];

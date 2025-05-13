@@ -1,5 +1,5 @@
-import { Topic, TopicCategory } from "../models/Topic";
-import defaultTopics from "../defaultTopics.json";
+import { Topic, TopicCategory } from "../models/Topic.js";
+import defaultTopics from "../defaultTopics.js";
 
 export class TopicManager {
   public topics: Topic[];
@@ -13,7 +13,7 @@ export class TopicManager {
     const topics: Topic[] = [];
 
     for (const [category, items] of Object.entries(defaultTopics)) {
-      for (const item of items as string[]) {
+      for (const item of items) {
         topics.push({
           id: id.toString(),
           category: category as TopicCategory,
@@ -53,7 +53,6 @@ export class TopicManager {
       console.error("Topic not found with ID:", updatedTopic.id);
     }
   }
-
 
   resetTopics(): void {
     this.topics = this.loadDefaultTopics();

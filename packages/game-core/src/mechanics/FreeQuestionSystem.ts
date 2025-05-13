@@ -1,4 +1,4 @@
-import { Player, Question } from "../models";
+import { Player, Question } from "../models/index.js";
 
 export class FreeQuestionSystem {
   private players: Player[] = [];

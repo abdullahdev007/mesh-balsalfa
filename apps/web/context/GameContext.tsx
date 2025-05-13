@@ -10,7 +10,7 @@ import { generateRandomUsername } from "@/utils/generateRandomUsername";
 type GameMode = "online" | "offline";
 
 type GameContextType = {
-  mode: GameMode;
+  mode: GameMode | null;
   setMode: (mode: GameMode) => void;
   online: OnlineGameSystem;
   offline: GameEngine;
@@ -22,7 +22,7 @@ type GameContextType = {
 const GameContext = createContext<GameContextType | null>(null);
 
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
-  const [mode, setMode] = useState<GameMode>("online");
+  const [mode, setMode] = useState<GameMode | null>(null);
   const router = useRouter();
   const [username, setUsername] = useState<string | null>(() => {
     if (typeof window !== "undefined") {

@@ -1,20 +1,36 @@
 // apps/web/src/services/online/OnlineGameSystem.ts
 import { io, Socket } from "socket.io-client";
 import { ServerEvents, ClientEvents } from "@repo/shared";
-import { Topic, TopicCategory } from "@repo/game-core";
+import {
+  GamePhase,
+  Question,
+  Round,
+  Topic,
+  TopicCategory,
+} from "@repo/game-core";
 import { RoomInfo } from "@repo/shared";
-import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export const OnlineEngineEvents = {
   TOPICS_UPDATED: "topics:updated",
   TOPIC_CATEGORY_UPDATED: "topic_category:updated",
   PLAYERS_UPDATED: "players:updated",
+  ROUND_STARTED: "round:started",
+  PHASE_CHANGED: "phase:changed",
+  ROUND_ENDED: "round:ended",
+  NEW_QUESTION: "round:new_question",
 };
 
 export class OnlineGameSystem {
+  private static readonly ROLE_ASSIGNMENT_WAITING_TOAST_ID =
+    "role_assignment_waiting" as const;
+
+  private waitingForRoleAssignment: boolean = false;
+
   private socket: Socket;
   private router: ReturnType<typeof useRouter>;
+  // Fix listeners type
   private listeners: Map<string, Set<Function>> = new Map();
   public topics: Topic[] = [];
   public selectedCategory: TopicCategory = "animals";
@@ -22,41 +38,17 @@ export class OnlineGameSystem {
   public players: { username: string; id: string }[] = [];
   public isAdmin: boolean = false;
 
+  public currentRound: Round | null = null;
+  public currentPhase: GamePhase | null = null;
+  public playerID: string | null = null;
+
   constructor(username: string, router: ReturnType<typeof useRouter>) {
     this.socket = io(process.env.NEXT_PUBLIC_SERVER_URL!, {
       query: { username },
     });
+
     this.router = router;
 
-    // Handle room created event
-    this.socket.on(ServerEvents.ROOM_CREATED, (roomInfo: RoomInfo) => {
-      this.topics = roomInfo.topics || [];
-      this.roomID = roomInfo.id;
-      this.players = roomInfo.players;
-      this.emit(OnlineEngineEvents.TOPICS_UPDATED, this.topics);
-      this.emit(OnlineEngineEvents.PLAYERS_UPDATED, roomInfo.players);
-      this.isAdmin = roomInfo.adminID === this.socket.id;
-    });
-
-    // Handle topics updates
-    this.socket.on(
-      ServerEvents.TOPICS_UPDATED,
-      (response: { topics: Topic[] }) => {
-        this.topics = response.topics || [];
-        this.emit(OnlineEngineEvents.TOPICS_UPDATED, this.topics);
-      }
-    );
-
-    // Handle category update
-    this.socket.on(
-      ServerEvents.TOPIC_CATEGORY_UPDATED,
-      (response: { category: TopicCategory }) => {
-        this.selectedCategory = response.category;
-        this.emit(OnlineEngineEvents.TOPIC_CATEGORY_UPDATED, response.category);
-      }
-    );
-
-    // Handle username update
     this.socket.on(
       ServerEvents.USERNAME_UPDATED,
       (response: { username: string }) => {
@@ -64,7 +56,31 @@ export class OnlineGameSystem {
       }
     );
 
-    // Handle player joined event
+    this.socket.on(
+      ServerEvents.ROOM_CREATED,
+      (response: { roomInfo: RoomInfo; playerID: string }) => {
+        const { roomInfo, playerID } = response;
+        this.topics = roomInfo.topics || [];
+        this.roomID = roomInfo.id;
+        this.players = roomInfo.players;
+        this.playerID = playerID;
+        this.emit(OnlineEngineEvents.TOPICS_UPDATED, this.topics);
+        this.emit(OnlineEngineEvents.PLAYERS_UPDATED, roomInfo.players);
+        this.isAdmin = roomInfo.adminID === this.playerID;
+
+        this.currentPhase = "lobby";
+      }
+    );
+
+    this.socket.on(
+      ServerEvents.ROOM_DESTROYED,
+      (response: { roomId: string; message: string }) => {
+        this.cleanupGameEngine();
+        toast.error(response.message);
+        this.router.push("/");
+      }
+    );
+
     this.socket.on(
       ServerEvents.PLAYER_JOINED,
       (response: { player: { id: string; username: string } }) => {
@@ -73,22 +89,77 @@ export class OnlineGameSystem {
       }
     );
 
-    // Handle player left event
+    this.socket.on(ServerEvents.PLAYER_LEFT, (playerID: string) => {
+      this.players = this.players.filter((player) => player.id !== playerID);
+
+      this.emit(OnlineEngineEvents.PLAYERS_UPDATED, this.players);
+    });
+
+    this.socket.on(ServerEvents.ROUND_DESTROYED, (messaage: string) => {
+      toast.error(messaage);
+      toast.dismiss(OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID);
+
+      this.router.push("/lobby");
+
+      this.currentRound = null;
+      this.currentPhase = "lobby";
+    });
+
     this.socket.on(
-      ServerEvents.PLAYER_LEFT,
-      ( playerID: string) => {
-        this.players = this.players.filter((player) => player.id !== playerID);
-        this.emit(OnlineEngineEvents.PLAYERS_UPDATED, this.players); 
+      ServerEvents.TOPICS_UPDATED,
+      (response: { topics: Topic[] }) => {
+        this.topics = response.topics || [];
+        this.emit(OnlineEngineEvents.TOPICS_UPDATED, this.topics);
       }
     );
-  
-    // Handle room destroyed event
+
     this.socket.on(
-      ServerEvents.ROOM_DESTROYED,
-      (response: { roomId: string; message: string }) => {
-        this.cleanupGameEngine();
-        toast.error(response.message);
-        this.router.push("/");
+      ServerEvents.TOPIC_CATEGORY_UPDATED,
+      (response: { category: TopicCategory }) => {
+        this.selectedCategory = response.category;
+        this.emit(OnlineEngineEvents.TOPIC_CATEGORY_UPDATED, response.category);
+      }
+    );
+
+    this.socket.on(ServerEvents.ROUND_STARTED, (round: Round) => {
+      this.currentRound = round;
+      this.emit(OnlineEngineEvents.ROUND_STARTED, round);
+    });
+
+    this.socket.on(ServerEvents.QUESTION_ASKED, (question: Question) => {
+      this.emit(OnlineEngineEvents.NEW_QUESTION, question);
+    });
+
+    this.socket.on(ServerEvents.ROUND_ENDED, (round: Round) => {
+      this.currentRound = round;
+      this.currentPhase = "lobby";
+      this.emit(OnlineEngineEvents.ROUND_ENDED, round);
+    });
+
+    this.socket.on(ServerEvents.PHASE_CHANGED, (phase: GamePhase) => {
+      this.currentPhase = phase;
+
+      this.emit(OnlineEngineEvents.PHASE_CHANGED, phase);
+    });
+
+    this.socket.on(
+      ServerEvents.ROLE_ASSIGN_COUNTDOWN_STARTED,
+      (message: string) => {
+        if (!this.waitingForRoleAssignment) {
+          toast.loading(message, {
+            id: OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID,
+          });
+        }
+      }
+    );
+
+    this.socket.on(
+      ServerEvents.ROLE_ASSIGN_COUNTDOWN_COMPLETE,
+      (message: string) => {
+        toast.success(message, {
+          id: OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID,
+        });
+        this.waitingForRoleAssignment = false;
       }
     );
   }
@@ -104,9 +175,10 @@ export class OnlineGameSystem {
   }
 
   // Room management
-  async createRoom(options?: any) {
+
+  async createRoom() {
     return new Promise((resolve) => {
-      this.socket.emit(ClientEvents.CREATE_ROOM, options, resolve);
+      this.socket.emit(ClientEvents.CREATE_ROOM, {}, resolve);
     });
   }
 
@@ -117,17 +189,24 @@ export class OnlineGameSystem {
           const errorMessage =
             response.error?.message || "فشل في الانضمام إلى الغرفة";
           toast.error(errorMessage);
-          console.error("Failed to join room:", response.error);
+          console.log("Failed to join room:", response.error);
           resolve(false);
         } else {
+          // Show name change notification if applicable
+          if (response.nameChanged) {
+            toast.error(response.nameChanged);
+          }
+
           this.topics = response.roomInfo.topics || [];
           this.roomID = response.roomInfo.id;
+          this.playerID = response.playerID;
           this.players = response.roomInfo.players;
+          this.currentPhase = "lobby";
           this.emit(OnlineEngineEvents.TOPICS_UPDATED, this.topics);
           this.emit(OnlineEngineEvents.PLAYERS_UPDATED, this.players);
 
           // Use Next.js router for navigation
-          this.router.push("/lobby/online");
+          this.router.push("/lobby");
 
           resolve(true);
         }
@@ -146,8 +225,7 @@ export class OnlineGameSystem {
           resolve(false);
         } else {
           this.cleanupGameEngine();
-
-          // Navigate back to home
+          
           this.router.push("/");
 
           resolve(true);
@@ -176,14 +254,54 @@ export class OnlineGameSystem {
     });
   }
 
-  // player management
-  async updateUsername(newUsername: string) {
+  // Round management
+
+  async startRound() {
+    return new Promise((resolve) => {
+      this.socket.emit(ClientEvents.START_ROUND, (response: any) => {
+        if (!response.success) {
+          const errorMessage = response.error?.message || "فشل في بدء الجولة";
+          toast.error(errorMessage);
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  }
+
+  async roleTaked() {
     return new Promise((resolve) => {
       this.socket.emit(
-        ClientEvents.UPDATE_USERNAME,
-        { username: newUsername },
-        resolve
+        ClientEvents.ROLE_TAKED,
+        (response: { success: boolean; message: string }) => {
+          if (!response.success) {
+            toast.error(response.message);
+            resolve(false);
+          } else {
+            toast.loading(response.message, {
+              id: OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID,
+            });
+            this.waitingForRoleAssignment = true;
+            resolve(true);
+          }
+        }
       );
+      resolve(true);
+    });
+  }
+
+  async askNextQuestion() {    
+    return new Promise((resolve) => {
+      this.socket.emit(ClientEvents.ASK_NEXT_QUESTION, (response: any) => {
+        if (!response.success) {
+          const errorMessage = response.error?.message || "فشل في السؤال";
+          toast.error(errorMessage);
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
     });
   }
 
@@ -208,6 +326,18 @@ export class OnlineGameSystem {
     this.listeners.get(event)?.forEach((cb) => cb(data));
   }
 
+  // player management
+
+  async updateUsername(newUsername: string) {
+    return new Promise((resolve) => {
+      this.socket.emit(
+        ClientEvents.UPDATE_USERNAME,
+        { username: newUsername },
+        resolve
+      );
+    });
+  }
+
   // cleanup
 
   private cleanupGameEngine() {
@@ -217,6 +347,11 @@ export class OnlineGameSystem {
     this.players = [];
     this.isAdmin = false;
     this.selectedCategory = "animals";
+    this.currentRound = null;
+    this.currentPhase = null;
+    this.playerID = null;
+    this.waitingForRoleAssignment = false;
+
 
     // Clear all event listeners
     this.listeners.clear();

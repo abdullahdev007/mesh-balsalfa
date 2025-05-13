@@ -1,2 +1,2 @@
-export * from "./GameEngine";
-export * from "./StateManager";
+export * from "./GameEngine.js";
+export * from "./StateManager.js";

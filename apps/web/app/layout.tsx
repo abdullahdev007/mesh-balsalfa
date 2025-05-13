@@ -13,6 +13,7 @@ import ToastProvider from "@/components/toastProvider/ToastProvider";
 import { GameProvider } from "@/context/GameContext";
 import Head from "next/head";
 
+
 export const metadata: Metadata = {
   title: "مش بلسالفة",
   description: "",
@@ -26,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="ar">
       <Head>
-        <link rel="icon" href="/images/dark-logo.png"  type="image/png" />  {/* Prevents favicon request */}
+        <link rel="icon" href="/images/dark-logo.png"  type="image/png" />
       </Head>
       <body>
         <GameProvider>

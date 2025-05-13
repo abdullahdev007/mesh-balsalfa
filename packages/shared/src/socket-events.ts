@@ -10,11 +10,18 @@ export const ServerEvents = {
 
   ROUND_STARTED: "round:started", // on round started
   ROUND_ENDED: "round:ended", // on round Ended
+  ROUND_DESTROYED: "roudn:destroyed", // on round destroyed
+
   PHASE_CHANGED: "round:phase_changed", // on game phase_changed,
   QUESTION_ASKED: "round:question_asked", // question asked in game
   FREE_QUESTION_ASKED: "round:free_question_asked", // free question Asked
   FREE_QUESTION_ASK_DONE: "round:free_question_ask_done", // emit to players the free question ask complete
-  COUNTDOWN_STARTED: "round:countdown_started", // countdown is started
+  
+
+  ROLE_ASSIGN_COUNTDOWN_STARTED: "round:role_assign_countdown:start", // role assign countdown complete
+  ROLE_ASSIGN_COUNTDOWN_COMPLETE: "round:role_assign_countdown:complete", // role assign countdown complete
+
+  COUNTDOWN_STARTED: "round:countdown_started", // [ for now stay here ]
 
   TOPICS_UPDATED: "topics:updated",
   TOPIC_CATEGORY_UPDATED: "topics:category_updated",
@@ -32,8 +39,8 @@ export const ClientEvents = {
   UPDATE_USERNAME: "username:update", // Update username
 
   START_ROUND: "round:start", // start new round in room
-  TAKEED_ROLE: "round:takeedrole", // on user complete from take his role
-  QUESTION_ASK_DONE: "round:question_ask_done", // on user complete from ask here question
+  ROLE_TAKED: "round:takeedrole", // on user complete from take his role
+  ASK_NEXT_QUESTION: "round:ask_next_question", // on user complete from ask here question
   ASK_FREE_QUESTION: "round:ask_free_question", // user need to ask free question
   FREE_QUESTION_ASK_DONE: "round:free_question_ask_done", // free question ask done
 

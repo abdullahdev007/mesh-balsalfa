@@ -8,16 +8,18 @@ import {
   TopicCategory,
   Round,
   Question,
-} from "../models";
+} from "../models/index.js";
 
-import { GameStateManager } from "./StateManager";
+import { GameStateManager } from "./StateManager.js";
 import {
   VotingSystem,
   FreeQuestionSystem,
   QuestionSystem,
   TopicManager,
   RoleSystem,
-} from "../mechanics/index";
+} from "../mechanics/index.js";
+
+import { ERRORS } from "../errorMessages.js";
 
 export class GameEngine extends EventEmitter {
   private stateManager: GameStateManager;
@@ -39,6 +41,12 @@ export class GameEngine extends EventEmitter {
 
   public addPlayer(player: Omit<Player, "score" | "role">): void {
     try {
+      if (
+        this.stateManager.state.players.some(
+          (p: Player) => p.username === player.username
+        )
+      )
+        throw Error(ERRORS.DUPLICATED_USERNAME);
       this.stateManager.addPlayer(player);
 
       this.emit(GameEvent.PLAYER_JOINED, player);
@@ -82,6 +90,8 @@ export class GameEngine extends EventEmitter {
     }
   }
 
+  // ********* Topics functions  ************
+
   public selectCategory = (topicCategory: TopicCategory) => {
     try {
       this.stateManager.updateState({ selectedCategory: topicCategory });
@@ -93,12 +103,11 @@ export class GameEngine extends EventEmitter {
     }
   };
 
-  // ********* Topics functions  ************
-
   public addTopic(topic: Omit<Topic, "id">) {
     try {
       if (this.stateManager.state.phase != "lobby")
-        throw Error("can update topic only on lobby phase");
+        throw Error(ERRORS.UPDATE_TOPICS_LOBBY_ONLY);
+
       this.topicManager.addTopic(topic);
       this.emit(GameEvent.TOPICS_UPDATED, this.topicManager.topics);
     } catch (error) {
@@ -110,7 +119,7 @@ export class GameEngine extends EventEmitter {
   public removeTopic(topicID: string) {
     try {
       if (this.stateManager.state.phase != "lobby")
-        throw Error("can update topic only on lobby phase");
+        throw Error(ERRORS.UPDATE_TOPICS_LOBBY_ONLY);
 
       this.topicManager.removeTopic(topicID);
       this.emit(GameEvent.TOPICS_UPDATED, this.topicManager.topics);
@@ -123,7 +132,7 @@ export class GameEngine extends EventEmitter {
   public updateTopic(newTopic: Topic) {
     try {
       if (this.stateManager.state.phase != "lobby")
-        throw Error("can update topic only on lobby phase");
+        throw Error(ERRORS.UPDATE_TOPICS_LOBBY_ONLY);
 
       this.topicManager.updateTopic(newTopic);
       this.emit(GameEvent.TOPICS_UPDATED, this.topicManager.topics);
@@ -142,10 +151,15 @@ export class GameEngine extends EventEmitter {
     try {
       const players = this.stateManager.state.players;
 
+      if (this.stateManager.state.phase != "lobby")
+        throw Error(ERRORS.NOT_IN_LOBBY);
+
+      if (players.length < 3) throw Error(ERRORS.NOT_ENOUGH_PLAYERS);
+
       // Assign roles and get random topic
       const updatedPlayers: Player[] = this.roleSystem.assignRoles(players);
       const topic: Topic = this.topicManager.getRandomTopic(
-        this.stateManager.state.selectedCategory
+        this.stateManager.state.selectedCategory ?? "animals"
       );
 
       // update state and start new round
@@ -165,7 +179,7 @@ export class GameEngine extends EventEmitter {
     }
   }
 
-  public startQuestionPhase(): string | undefined {
+  public startQuestionPhase(): void {
     try {
       this.stateManager.updateState({
         phase: "questions-phase",
@@ -176,31 +190,27 @@ export class GameEngine extends EventEmitter {
       );
 
       this.emit(GameEvent.PHASE_CHANGED, this.stateManager.state.phase);
-
-      return this.questionSystem.getQuestionOrder[0]?.id;
     } catch (error) {
       console.log(`Error starting question round: ${error}`);
       this.emit(GameEvent.ERROR, error);
     }
   }
 
-  public askNextQuestion(askerPlayerID: string): Question | undefined {
+  public askNextQuestion(): Question | undefined {
     try {
       if (this.stateManager.state.phase !== "questions-phase")
-        throw Error("cant ask question if round phase not question-round");
-
-      const question: Question =
-        this.questionSystem.getNextQuestion(askerPlayerID)!;
-
-      if (question) {
-        this.emit(GameEvent.QUESTION_ASKED, question);
-      }
+        throw Error(ERRORS.INVALID_PHASE);
 
       if (this.questionSystem.thisLastQuestion) {
         this.freeQuestionSystem.setup(this.stateManager.state.players);
         this.stateManager.updateState({ phase: "free-questions-phase" });
         this.emit(GameEvent.PHASE_CHANGED, this.stateManager.state.phase);
       }
+      
+      const question: Question = this.questionSystem.getNextQuestion()!;
+      
+      if (question) this.emit(GameEvent.QUESTION_ASKED, question);
+      
 
       return question;
     } catch (error) {
@@ -215,9 +225,7 @@ export class GameEngine extends EventEmitter {
   ): Question | undefined {
     try {
       if (this.stateManager.state.phase != "free-questions-phase")
-        throw Error(
-          "cant ask free question if round phase not free-question-round"
-        );
+        throw Error(ERRORS.INVALID_PHASE);
 
       const question: Question = this.freeQuestionSystem.getNextQuestion(
         askerPlayerID,
@@ -240,7 +248,7 @@ export class GameEngine extends EventEmitter {
   public startVoting(): void {
     try {
       if (this.stateManager.state.phase != "free-questions-phase")
-        throw Error("cant start voting befor free questions round");
+        throw Error(ERRORS.INVALID_PHASE);
 
       this.votingSystem.setup(this.stateManager.getCurrentRound()?.players!);
       this.stateManager.updateState({ phase: "voting" });
@@ -254,7 +262,7 @@ export class GameEngine extends EventEmitter {
   public castVote(voterID: string, suspectID: string) {
     try {
       if (this.stateManager.state.phase != "voting")
-        throw Error("can't vote if round pahse is not voting");
+        throw Error(ERRORS.INVALID_PHASE);
 
       const roundVotes: VoteResult[] =
         this.stateManager.getCurrentRound()?.votes!;
@@ -280,10 +288,10 @@ export class GameEngine extends EventEmitter {
   public guessTopic(topicID: string, playerID: string) {
     try {
       if (this.stateManager.state.phase != "guess-topic")
-        throw Error('can"t guess the topic if round phase is not guess-topic');
+        throw Error(ERRORS.INVALID_PHASE);
 
       if (playerID !== this.stateManager.getCurrentRound()?.spy.id)
-        throw Error("only spy player can guess the topic");
+        throw Error(ERRORS.ONLY_SPY_CAN_GUESS);
 
       this.stateManager.getCurrentRound()!.guessedTopic =
         this.topicManager.getTopic(topicID);
@@ -298,6 +306,30 @@ export class GameEngine extends EventEmitter {
       );
     } catch (error) {
       console.log(`Error on guess the topic: ${error}`);
+      this.emit(GameEvent.ERROR, error);
+    }
+  }
+
+  public destroyRound(): void {
+    try {
+      if(this.stateManager.state.phase === "lobby")
+        throw Error(ERRORS.INVALID_PHASE);
+
+      const currentRound = this.stateManager.getCurrentRound();
+      if (!currentRound) return;
+
+      // Reset state to lobby and clear current round data
+      this.stateManager.updateState({
+        phase: "lobby",
+        rounds: this.stateManager.state.rounds.filter(
+          (r) => r.roundNumber !== this.stateManager.state.currentRound
+        )
+      });
+
+      this.emit(GameEvent.ROUND_ENDED, "Round was destroyed");
+      this.emit(GameEvent.PHASE_CHANGED, this.state.phase);
+    } catch (error) {
+      console.log(`Error destroying round: ${error}`);
       this.emit(GameEvent.ERROR, error);
     }
   }

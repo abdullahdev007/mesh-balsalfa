@@ -1,9 +1,16 @@
 {
-  "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
-    "module": "NodeNext",
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "outDir": "dist",
     "rootDir": "src",
-   },
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "ts-node": {
+    "loader": "ts-node/esm"
+  },
   "include": ["src/**/*"]
 }

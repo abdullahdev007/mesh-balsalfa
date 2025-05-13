@@ -1,7 +1,6 @@
-export * from "./socket-events";
+export * from "./socket-events.js";
 
-export * from "./types";
+export * from "./types/index.js";
 
-// Export server errors
-export * from "./constants/serverErrors";
-export * from "./constants/messages";
+export * from "./constants/serverErrors.js";
+export * from "./constants/messages.js";

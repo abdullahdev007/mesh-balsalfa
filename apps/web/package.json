@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 3000",
+    "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint --max-warnings 0",
@@ -13,11 +13,14 @@
   "dependencies": {
     "@repo/game-core": "^1.0.0",
     "@repo/shared": "^1.0.0",
+    "framer-motion": "^12.10.1",
     "next": "^15.1.6",
+    "next-transpile-modules": "^10.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
     "react-modal": "^3.16.3",
+    "react-timer-hook": "^4.0.5",
     "react-tooltip": "^5.28.0",
     "sass": "^1.84.0",
     "socket.io-client": "^4.8.1",

@@ -2,12 +2,12 @@
   "name": "@repo/game-core",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "dev": "concurrently \"tsc -w\" \"nodemon\"",
-    "lint": "eslint src --ext .ts,.tsx"
+    "dev": "tsc --w"
   },
   "keywords": [],
   "author": "",

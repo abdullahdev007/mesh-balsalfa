@@ -1,5 +1,5 @@
-import { Player } from "../models";
-import { RoomsManager } from ".";
+import { Player } from "../models/index.js";
+import { RoomsManager } from "./index.js";
 
 export class GameManager {
   public players: Player[] = [];
@@ -37,9 +37,10 @@ export class GameManager {
       }
 
       // Remove player from game
-      this.players = this.players.filter(
-        (player: Player) => player.socketId !== socketId
-      );
+
+      this.players = this.players.filter((player: Player) => {
+        return player.socketId !== socketId;
+      });
     } catch (error) {
       console.log(`Error removing "${socketId}" player from game: ${error}`);
       throw new Error("Error removing player from game");

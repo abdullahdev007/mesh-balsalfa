@@ -1,3 +1,3 @@
-export * from './gameManager';
-export * from './roomsManager';
-export * from "./roundManager";
+export * from './gameManager.js';
+export * from './roomsManager.js';
+export * from "./roundManager.js";

@@ -104,6 +104,7 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
       offline.selectCategory(category);
     }
 
+
     onClose();
   };
 

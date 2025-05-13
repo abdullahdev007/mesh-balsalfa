@@ -5,7 +5,6 @@ import Image from "next/image";
 import styles from "./page.module.scss";
 import { useTheme } from "@/context/ThemeContext";
 
-import { playSound } from "@/utils/soundPlayer";
 import { useState } from "react";
 import UsernameInput from "@/components/usernameInput/usernameInput";
 import { useRouter } from "next/navigation";
@@ -34,12 +33,12 @@ const Home = () => {
 
   const handleCreateRoom = () => {
     online.createRoom();
-    router.push("/lobby/online");
+    router.push("/lobby");
     setMode("online");
   };
 
   const handleStartLocalGame = () => {
-    router.push("/lobby/offline");
+    router.push("/lobby");
     setMode("offline");
   };
 

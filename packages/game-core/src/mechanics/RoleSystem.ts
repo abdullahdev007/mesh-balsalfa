@@ -1,4 +1,4 @@
-import { Player, Role } from "../models/Player";
+import { Player, Role } from "../models/Player.js";
 
 export class RoleSystem {
   

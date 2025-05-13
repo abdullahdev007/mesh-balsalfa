@@ -1,7 +1,7 @@
-import { Player } from ".";
+import { Player } from "./index.js";
+import { RoundManager } from "../managers/index.js";
 import { GameEngine } from "@repo/game-core";
-import { RoundManager } from "../managers";
-
+import { customAlphabet } from "nanoid";
 export class Room {
   public players: Map<string, Player> = new Map();
   public id: string;
@@ -20,7 +20,6 @@ export class Room {
 
   // Method for creating room ID (example output: "MN2REC")
   private static generateRoomId(): string {
-    const { customAlphabet } = require("nanoid");
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const generateId = customAlphabet(alphabet, 6);
     return generateId();

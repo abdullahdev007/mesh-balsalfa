@@ -1,4 +1,4 @@
-import { Player, Room } from "../models";
+import { Player, Room } from "../models/index.js";
 
 export class RoomsManager {
   public rooms: Room[] = [];
@@ -10,6 +10,7 @@ export class RoomsManager {
       const room: Room = new Room(admin);
       this.rooms.push(room);
       admin.room = room;
+      room.gameEngine.addPlayer(admin.gamePlayer);
 
       console.log(`Room with ${room.id} is created by ${admin.name} player`);
       return room;

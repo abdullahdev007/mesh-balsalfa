@@ -1,4 +1,4 @@
-import { Room } from ".";
+import { Room } from "./index.js";
 import { Player as GamePlayer, generateUserId } from "@repo/game-core";
 
 export class Player {

@@ -1,7 +1,4 @@
-import { GameEngine } from "./engine";
-import { GameEvent, GamePhase, GameState, Player, Round } from "./models";
-
-export * from "./models";
-export * from "./engine";
-export * from "./mechanics";
-export * from "./utils";
+export * from "./models/index.js";
+export * from "./engine/index.js";
+export * from "./mechanics/index.js";
+export * from "./utils/index.js";
