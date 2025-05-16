@@ -1,17 +1,71 @@
-import React from "react";
-import styles from "./styles.module.scss";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import mainStyles from "../../styles.module.scss";
 import TypewriterText from "@/components/Typewriter/Typewriter";
+import { useGame } from "@/context/GameContext";
+import { useCountdown } from "@/hooks/useCountdown";
+import toast from "react-hot-toast";
+import { GameEvent, GamePhase } from "@repo/game-core";
 
+const ONLINE_MESSAGE = (username: string) =>
+  `${username} اختار الشخص اللي بتشك انه برا السالفة او اذا انت برا السالفة اختار اي حدا تصويتك ما حينحسب`;
+const OFFLINE_MESSAGE = (username: string) =>
+  `اعطو الجهاز ل ${username} ، اختار الشخص اللي بتشك انه برا السالفة او اذا انت برا السالفة اختار اي حدا تصويتك ما حينحسب`;
+
+const TIMER_MESSAGE = (seconds: number) =>
+  `ستنتهي مرحلة التصويت بعد ${seconds} ثواني يرجى الانتظار`;
 const Voting: React.FC = () => {
+  const { online, offline, mode } = useGame();
+
+  const [isTypewriterComplete, setIsTypewriterComplete] = useState(false);
+
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [voterID, setVoterID] = useState<string | null>(
+    mode === "online" ? online.playerID : offline.state.players[currentIndex]?.id!
+  );
+
+  const [waitCompleteVoting, setWaitCompleteVoting] = useState<boolean>(false);
+  const toastIdRef = useRef<string | undefined>(undefined);
+
+
+
+  const handleVoteButton = useCallback(
+    (suspectID: string) => {
+      if (!voterID) return;
   
+      if (mode === "online") {
+        online.castVote(suspectID);
+        setWaitCompleteVoting(true);
+      } else if (mode === "offline") {
+        offline.castVote(voterID, suspectID);
+  
+        const nextIndex = currentIndex + 1; 
+
+        setCurrentIndex(nextIndex);
+  
+ 
+        if(offline.state.players[nextIndex]) setVoterID(offline.state.players[nextIndex]?.id!);
+        
+  
+      }
+    },
+    [mode, online, offline, voterID, currentIndex]
+  );
+  
+
+  const players = mode === "online" ? online.players : offline.state.players;
+
   return (
     <div className={mainStyles.container}>
       <div className={mainStyles.title}>مرحلة التصويت</div>
       <div className={mainStyles.description}>
         <TypewriterText
           text={
-            "أختار بمين بتشك انو برا"
+            mode === "online"
+              ? ONLINE_MESSAGE(
+                  online.players.find((p) => p.id === online.playerID)
+                    ?.username!
+                )
+              : OFFLINE_MESSAGE(offline.state.players[currentIndex]?.username!)
           }
           speed={10}
           isArabic={true}
@@ -19,30 +73,18 @@ const Voting: React.FC = () => {
         />
       </div>
 
-      {isChooseEnabled ? (
-        <div className={mainStyles.playersGrid}>
-          {players.map((player) => (
-            <button
-              key={player.id}
-              className={mainStyles.playerButton}
-              onClick={() => handleAskQuestion(player.id)}
-              disabled={!isTypewriterComplete || currentAskerID == player.id}
-            >
-              {player.username}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <></>
-      )}
-
-      <button
-        className={`${mainStyles.nextButton} ${styles.voteButton}`}
-        onClick={handleActionButton}
-        disabled={!isTypewriterComplete || actionButtonLabel === "التالي"}
-      >
-        {actionButtonLabel}
-      </button>
+      <div className={mainStyles.playersGrid}>
+        {players.map((player) => (
+          <button
+            key={player.id}
+            className={mainStyles.playerButton}
+            onClick={() => handleVoteButton(player.id)}
+            disabled={!isTypewriterComplete || voterID === player.id || waitCompleteVoting}
+          >
+            {player.username}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

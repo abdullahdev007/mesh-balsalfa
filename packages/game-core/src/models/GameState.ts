@@ -43,4 +43,5 @@ export type GamePhase =
   | "questions-phase"
   | "free-questions-phase"
   | "voting"
+  | "show-spy"
   | "guess-topic";

@@ -21,6 +21,9 @@ export const ServerEvents = {
   ROLE_ASSIGN_COUNTDOWN_STARTED: "round:role_assign_countdown:start", // role assign countdown complete
   ROLE_ASSIGN_COUNTDOWN_COMPLETE: "round:role_assign_countdown:complete", // role assign countdown complete
 
+  VOTING_COUNTDOWN_STARTED: "round:voting_countdown:started", // voting countdown started
+  VOTING_COUNTDOWN_COMPLETE: "round:voting_countdown:complete", // voting countdown complete
+
   COUNTDOWN_STARTED: "round:countdown_started", // [ for now stay here ]
 
   TOPICS_UPDATED: "topics:updated",

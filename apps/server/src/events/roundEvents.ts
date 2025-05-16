@@ -296,7 +296,6 @@ export const handleRoundEvents = (
         });
 
       room.gameEngine.startVoting();
-
     } catch (error) {
       console.log(`Error on START_VOTING event : ${error}`);
       return callback({
@@ -308,30 +307,81 @@ export const handleRoundEvents = (
     }
   });
 
-  socket.on(ClientEvents.CAST_VOTE, (suspectID: string) => {
+  socket.on(ClientEvents.CAST_VOTE, (suspectID: string, callback) => {
     try {
       const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
       const room: Room = player.room!;
 
-      if (!player || !room) {
-        io.to(socket.id).emit(ServerEvents.ERROR, {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+      if (!player || !room)
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+          },
         });
-        return;
-      }
 
-      if (room.gameEngine.state.phase !== "voting") {
-        io.to(socket.id).emit(ServerEvents.ERROR, {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.CANNOT_VOTE],
+      if (room.gameEngine.state.phase !== "voting")
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.CANNOT_VOTE],
+          },
         });
-        return;
-      }
-
+      
+      console.log(room.gameEngine.state.phase);
+      
       room.gameEngine.castVote(player.id, suspectID);
+
+      const roundManager = room.roundManager;
+      const timerId = `voting_${room.id}`;
+
+      roundManager.addToWaitingList(player.id, timerId);
+      const votedCount = roundManager.getReadyCount(timerId);
+
+      if (votedCount < room.players.size) {
+        callback({
+          success: true,
+          message: SERVER_MESSAGES.VOTING_WAITING_PLAYERS,
+        });
+      }
+
+      if (votedCount === 1) {
+        const message = SERVER_MESSAGES.VOTING_COUNTDOWN_STARTED;
+        io.to(room.id).emit(ServerEvents.VOTING_COUNTDOWN_STARTED, message);
+
+        roundManager.startCountdown(timerId, {
+          duration: 30000,
+          onExpire: () => {
+            // Get players who haven't voted yet
+            const votedPlayers = roundManager.getWaitingList(timerId);
+            const nonVotedPlayers = Array.from(room.players.values())
+              .filter(player => !votedPlayers.has(player.id));
+
+            // Make non-voted players vote for themselves
+            nonVotedPlayers.forEach(player => {
+              room.gameEngine.castVote(player.id, player.id);
+            });
+
+            const message = SERVER_MESSAGES.VOTING_COUNTDOWN_COMPLETED;
+            io.to(room.id).emit(
+              ServerEvents.VOTING_COUNTDOWN_COMPLETE,
+              message
+            );
+          },
+        });
+      } else if (votedCount === room.players.size) {
+        roundManager.cancelCountdown(timerId);
+        const message = SERVER_MESSAGES.VOTING_COUNTDOWN_COMPLETED;
+        io.to(room.id).emit(ServerEvents.VOTING_COUNTDOWN_COMPLETE, message);
+      }
+
     } catch (error) {
       console.log(`Error on CAST_VOTE event : ${error}`);
-      io.to(socket.id).emit(ServerEvents.ERROR, {
-        message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+      return callback({
+        success: false,
+        error: {
+          message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+        },
       });
     }
   });

@@ -12,7 +12,7 @@ import {
   GuessTopic,
 } from "./states";
 
-export type GameScreenType = GamePhase | "show-spy";
+export type GameScreenType = GamePhase;
 
 interface GameFlowScreenProps {
   currentScreen: GameScreenType;

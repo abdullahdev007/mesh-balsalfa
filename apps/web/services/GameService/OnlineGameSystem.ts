@@ -28,7 +28,10 @@ export class OnlineGameSystem {
   private static readonly ROLE_ASSIGNMENT_WAITING_TOAST_ID =
     "role_assignment_waiting" as const;
 
+  private static readonly VOTING_WAITING_TOAST_ID = "voting_waiting" as const;
+
   private waitingForRoleAssignment: boolean = false;
+  private waitingForVoting: boolean = false;
 
   private socket: Socket;
   private router: ReturnType<typeof useRouter>;
@@ -175,6 +178,24 @@ export class OnlineGameSystem {
         this.waitingForRoleAssignment = false;
       }
     );
+
+    this.socket.on(ServerEvents.VOTING_COUNTDOWN_STARTED, (message: string) => {
+      if (!this.waitingForVoting) {
+        toast.loading(message, {
+          id: OnlineGameSystem.VOTING_WAITING_TOAST_ID,
+        });
+      }
+    });
+
+    this.socket.on(
+      ServerEvents.VOTING_COUNTDOWN_COMPLETE,
+      (message: string) => {
+        toast.success(message, {
+          id: OnlineGameSystem.VOTING_WAITING_TOAST_ID,
+        });
+        this.waitingForVoting = false;
+      }
+    );
   }
 
   // Category management
@@ -196,9 +217,9 @@ export class OnlineGameSystem {
   }
 
   async joinRoom(roomID: string) {
-    if (this.players.length >= 12) 
+    if (this.players.length >= 12)
       return toast.error("لا يمكن الانضمام إلى الغرفة، الحد الأقصى هو 12 لاعب");
-    
+
     return new Promise((resolve) => {
       // Check if maximum player limit is reached
 
@@ -252,7 +273,7 @@ export class OnlineGameSystem {
     });
   }
 
-  // Topic management
+  /** Topic Management */
 
   async addTopic(topic: Omit<Topic, "id">) {
     return new Promise((resolve) => {
@@ -327,7 +348,7 @@ export class OnlineGameSystem {
     return new Promise((resolve) => {
       this.socket.emit(
         ClientEvents.ASK_FREE_QUESTION,
-         targetPlayerID ,
+        targetPlayerID,
         (response: any) => {
           if (!response.success) {
             const errorMessage = response.error?.message || "فشل في السؤال";
@@ -342,12 +363,10 @@ export class OnlineGameSystem {
   }
 
   async freeQuestionAskDone(nextAskerID: string) {
-    console.log("here");
-
     return new Promise((resolve) => {
       this.socket.emit(
         ClientEvents.FREE_QUESTION_ASK_DONE,
-         nextAskerID ,
+        nextAskerID,
         (response: any) => {
           if (!response.success) {
             const errorMessage = response.error?.message || "فشل في السؤال";
@@ -363,20 +382,36 @@ export class OnlineGameSystem {
 
   async startVoting() {
     return new Promise((resolve) => {
-      this.socket.emit(
-        ClientEvents.START_VOTING,
-        (response: any) => {
-          if (!response.success) {
-            const errorMessage = response.error?.message || "فشل في السؤال";
-            toast.error(errorMessage);
-            resolve(false);
-          } else {
-            resolve(true);
-          }
+      this.socket.emit(ClientEvents.START_VOTING, (response: any) => {
+        if (!response.success) {
+          const errorMessage = response.error?.message || "فشل في السؤال";
+          toast.error(errorMessage);
+          resolve(false);
+        } else {
+          resolve(true);
         }
-      );
+      });
     });
   }
+
+  async castVote(suspectID: string) {
+    return new Promise((resolve) => {
+      this.socket.emit(ClientEvents.CAST_VOTE, suspectID, (response: any) => {
+        if (!response.success) {
+          const errorMessage = response.error?.message || "فشل في السؤال";
+          toast.error(errorMessage);
+          resolve(false);
+        } else {
+          toast.loading(response.message, {
+            id: OnlineGameSystem.VOTING_WAITING_TOAST_ID,
+          });
+          this.waitingForVoting = true;
+          resolve(true);
+        }
+      });
+    });
+  }
+
   // Event system
 
   on(event: string, callback: Function) {
@@ -423,6 +458,7 @@ export class OnlineGameSystem {
     this.currentPhase = null;
     this.playerID = null;
     this.waitingForRoleAssignment = false;
+    this.waitingForVoting = false;
 
     // Clear all event listeners
     this.listeners.clear();

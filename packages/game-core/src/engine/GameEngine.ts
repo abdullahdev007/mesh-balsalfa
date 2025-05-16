@@ -274,12 +274,22 @@ export class GameEngine extends EventEmitter {
 
       this.stateManager.getCurrentRound()?.votes.push(vote);
 
-      if (this.votingSystem.isVotingComplete(roundVotes)) {
-        this.stateManager.updateState({ phase: "guess-topic" });
-        this.emit(GameEvent.PHASE_CHANGED, this.stateManager.state.phase);
-      }
+      if (this.votingSystem.isVotingComplete(roundVotes)) this.showSpy();
     } catch (error) {
       console.log(`Error on start voting: ${error}`);
+      this.emit(GameEvent.ERROR, error);
+    }
+  }
+
+  public showSpy() {
+    try {
+      if (this.stateManager.state.phase != "voting")
+        throw Error(ERRORS.INVALID_PHASE);
+
+      this.stateManager.updateState({ phase: "show-spy" });
+      this.emit(GameEvent.PHASE_CHANGED, this.stateManager.state.phase);
+    } catch (error) {
+      console.log(`Error on show spy: ${error}`);
       this.emit(GameEvent.ERROR, error);
     }
   }
