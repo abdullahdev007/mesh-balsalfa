@@ -1,4 +1,4 @@
-@use 'sass:color';
+@use "sass:color";
 
 .container {
   width: 100%;
@@ -110,16 +110,12 @@
       ul {
         display: flex;
         flex-direction: column;
-        justify-content: center;
-
-        gap: 5px;
-        padding: 50px 0;
-
+        justify-content: flex-start;
+        gap: 15px;
+        padding: 25px;
         overflow-y: auto;
         flex: 2;
-
-
-        white-space: nowrap;
+        list-style: none;
 
         mask-image: linear-gradient(
           to bottom,
@@ -129,7 +125,6 @@
           transparent 100%
         );
 
-        // For Webkit (Chrome/Safari)
         -webkit-mask-image: linear-gradient(
           to bottom,
           transparent 0px,
@@ -137,6 +132,19 @@
           black calc(100% - 50px),
           transparent 100%
         );
+
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: $primary-color;
+          border-radius: 4px;
+        }
       }
 
       .addPlayer {
@@ -154,7 +162,8 @@
       }
     }
 
-    .noRoundYet,.noPlayerYet {
+    .noRoundYet,
+    .noPlayerYet {
       flex: 2;
       justify-content: center;
       align-items: center;
@@ -202,8 +211,6 @@
           }
         }
       }
-
-
     }
   }
 
@@ -220,7 +227,7 @@
     text-align: center;
     max-width: 400px;
     word-wrap: break-word;
-    overflow-wrap: break-word; 
+    overflow-wrap: break-word;
 
     border: 5px solid $primary-color;
     border-radius: 15px;
@@ -315,7 +322,6 @@
       max-width: 350px;
     }
     .rightSection {
-      
       .listsFlex {
         .playersList {
           min-width: 250px;

@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { ServerEvents, ClientEvents } from "@repo/shared";
 import {
   GamePhase,
+  Player,
   Question,
   Round,
   Topic,
@@ -40,7 +41,7 @@ export class OnlineGameSystem {
   public topics: Topic[] = [];
   public selectedCategory: TopicCategory = "animals";
   public roomID: string | null = null;
-  public players: { username: string; id: string }[] = [];
+  public players: Player[] = [];
   public isAdmin: boolean = false;
 
   public currentRound: Round | null = null;
@@ -88,7 +89,7 @@ export class OnlineGameSystem {
 
     this.socket.on(
       ServerEvents.PLAYER_JOINED,
-      (response: { player: { id: string; username: string } }) => {
+      (response: { player: Player }) => {
         this.players.push(response.player);
         this.emit(OnlineEngineEvents.PLAYERS_UPDATED, this.players);
       }
@@ -196,6 +197,11 @@ export class OnlineGameSystem {
         this.waitingForVoting = false;
       }
     );
+    this.socket.on(ServerEvents.KICKED_FROM_ROOM, (response: { message: string }) => {
+      toast.error(response.message);
+      this.cleanupGameEngine();
+      this.router.push("/");
+    });
   }
 
   // Category management
@@ -252,6 +258,23 @@ export class OnlineGameSystem {
       });
     });
   }
+
+  async kickPlayer(playerID: string) {
+    return new Promise((resolve) => {
+      this.socket.emit(ClientEvents.KICK_PLAYER, playerID, (response: any) => {
+        if (!response.success) {
+          const errorMessage = response.error?.message || "فشل في طرد اللاعب";
+          toast.error(errorMessage);
+          resolve(false);
+        } else {
+          toast.success("تم طرد اللاعب بنجاح");
+          resolve(true);
+        }
+      });
+    });
+  }
+  
+  
 
   async leaveRoom() {
     return new Promise((resolve) => {
@@ -472,3 +495,4 @@ export class OnlineGameSystem {
     this.socket.connect();
   }
 }
+

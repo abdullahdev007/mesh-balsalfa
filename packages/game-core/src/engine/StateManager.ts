@@ -31,13 +31,15 @@ export class GameStateManager {
   public updateState = (updates: Partial<GameState>) =>
     (this.state = { ...this.state, ...updates });
 
-  public addPlayer(player: Omit<Player, "score" | "role">): void {
+  public addPlayer(player: Omit<Player, "score" | "role">): Player   {
     const newPlayer: Player = {
       ...player,
       role: undefined,
       score: 0,
     };
     this.state.players.push(newPlayer);
+
+    return newPlayer;
   }
 
   public removePlayer = (playerID: string) =>

@@ -50,9 +50,9 @@ export class GameEngine extends EventEmitter {
         )
       )
         throw Error(ERRORS.DUPLICATED_USERNAME);
-      this.stateManager.addPlayer(player);
+      const newPlayer: Player = this.stateManager.addPlayer(player);
 
-      this.emit(GameEvent.PLAYER_JOINED, player);
+      this.emit(GameEvent.PLAYER_JOINED, newPlayer);
     } catch (error) {
       console.log(`Error adding player: ${error}`);
       this.emit(GameEvent.ERROR, error);
@@ -68,7 +68,7 @@ export class GameEngine extends EventEmitter {
   }
 
   public removePlayer(playerID: string): void {
-    try {
+    try {      
       const player: Player = this.stateManager.state.players.find(
         (p: Player) => p.id === playerID
       )!;

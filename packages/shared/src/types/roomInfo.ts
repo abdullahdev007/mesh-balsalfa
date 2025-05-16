@@ -1,9 +1,9 @@
-import { Round, Topic } from "@repo/game-core";
+import { Player, Round, Topic } from "@repo/game-core";
 
 export type RoomInfo = {
   id: string;
   adminID: string;
-  players: { id: string; username: string }[];
+  players: Player[];
   topics: Topic[];
   rounds: Round[];
 };

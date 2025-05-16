@@ -9,11 +9,12 @@ import AddPlayerModal from "@/components/modals/addPlayerModal/addPlayerModal";
 
 import TopicModal from "@/components/modals/TopicModal/TopicModal";
 import { useRouter } from "next/navigation";
-import { GameEvent, Round, TopicCategory } from "@repo/game-core";
+import { GameEvent, Player, Round, TopicCategory } from "@repo/game-core";
 import { useGame } from "@/context/GameContext";
 import { translateCategory } from "@repo/game-core";
 import { OnlineEngineEvents } from "@/services/GameService";
 import toast from "react-hot-toast";
+import { PlayerCard } from "@/components/PlayerCard/PlayerCard";
 
 const WaitingPage = () => {
   const router = useRouter();
@@ -32,7 +33,7 @@ const WaitingPage = () => {
       : (offline.state.selectedCategory ?? "animals")
   );
 
-  const [players, setPlayers] = useState<{ id: string; username: string }[]>(
+  const [players, setPlayers] = useState<Player[]>(
     mode === "online" ? online.players : offline.state.players
   );
 
@@ -51,7 +52,7 @@ const WaitingPage = () => {
     };
 
     const handlePlayersUpdate = (
-      players: { id: string; username: string }[]
+      players: Player[]
     ) => {
       setPlayers([...players]);
     };
@@ -64,6 +65,17 @@ const WaitingPage = () => {
       toast.error(error.message);
     };
 
+    const handlePlayerLeft = (player: Player) => {
+      setPlayers((prevPlayers) =>
+        prevPlayers.filter((p) => p.id !== player.id)
+      );
+    };
+
+    const handlePlayerJoined = (player: Player) => {      
+      setPlayers((prevPlayer: Player[]) => [...prevPlayer, player]); 
+    }
+
+
     if (mode === "online") {
       online.on(
         OnlineEngineEvents.TOPIC_CATEGORY_UPDATED,
@@ -74,6 +86,8 @@ const WaitingPage = () => {
     } else if (mode === "offline") {
       offline.on(GameEvent.CATEGORY_CHANGED, handleCategoryUpdate);
       offline.on(GameEvent.ROUND_STARTED, handleRoundStarted);
+      offline.on(GameEvent.PLAYER_LEFT, handlePlayerLeft);
+      offline.on(GameEvent.PLAYER_JOINED, handlePlayerJoined);
       offline.on(GameEvent.ERROR, handleError);
     }
 
@@ -93,17 +107,6 @@ const WaitingPage = () => {
     };
   }, [online, offline, mode, router]);
 
-  useEffect(() => {
-    const handleCategoryUpdate = (category: TopicCategory) => {
-      setSelectedCategory(category);
-    };
-
-    return () => {
-      if (mode === "offline") {
-        offline.off(GameEvent.CATEGORY_CHANGED, handleCategoryUpdate);
-      }
-    };
-  }, [offline]);
 
   if (mode === null) {
     return null;
@@ -127,7 +130,6 @@ const WaitingPage = () => {
   };
 
   const handleLeaveGame = () => {
-
     router.push("/");
 
     if (mode === "online") {
@@ -138,9 +140,8 @@ const WaitingPage = () => {
   };
 
   const handleStartRound = () => {
-    if (players.length < 3) 
+    if (players.length < 3)
       return toast.error("لا يمكن بدء الجولة بأقل من 3 لاعبين ");
-      
 
     if (mode === "online") {
       if (!online.isAdmin)
@@ -150,6 +151,14 @@ const WaitingPage = () => {
       offline.startNewRound();
     }
   };
+
+  useEffect(() => {
+    return () => {
+        if (mode === 'offline') {
+            cleanupOfflineGameEngine();
+        }
+    };
+}, [mode]);
 
   return (
     <div className={styles.container}>
@@ -219,7 +228,11 @@ const WaitingPage = () => {
             ) : (
               <ul>
                 {players?.map((player, index) => (
-                  <li key={player.id}>{`${index++}. ${player.username}`}</li>
+                  <PlayerCard
+                    key={player.id}
+                    player={player}
+                    index={index}
+                  />
                 ))}
               </ul>
             )}

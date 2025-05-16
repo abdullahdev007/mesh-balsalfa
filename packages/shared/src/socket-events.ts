@@ -5,7 +5,8 @@ export const ServerEvents = {
   USERNAME_UPDATED: "username:updated", // Username was updated
   PLAYER_JOINED: "player:joined", // A new player joined the room
   PLAYER_LEFT: "player:left", // A player left a room
-  
+  KICKED_FROM_ROOM: "player:kicked", // A player was kicked from the room
+
   ERROR: "Error", // On error
 
   ROUND_STARTED: "round:started", // on round started
@@ -38,6 +39,7 @@ export const ClientEvents = {
   DESTROY_ROOM: "room:destroy", // destroy the room
   JOIN_ROOM: "room:join", // Join a room
   LEAVE_ROOM: "room:leave", // Leave a room
+  KICK_PLAYER: "room:kick", // kick a player from room
   GET_ROOM_INFO: "room:getInfo",
   UPDATE_USERNAME: "username:update", // Update username
 

@@ -4,7 +4,7 @@ import { GameEngine } from "@repo/game-core";
 import { customAlphabet } from "nanoid";
 import { SERVER_ERROR_MESSAGES, ServerErrorType } from "@repo/shared";
 export class Room {
-  public players: Map<string, Player> = new Map();
+  public players: Player[] = [];
   public id: string;
   public admin: Player;
   public gameEngine: GameEngine;
@@ -12,7 +12,7 @@ export class Room {
 
   constructor(admin: Player) {
     this.admin = admin;
-    this.players.set(admin.id, admin);
+    this.players.push(admin);
     this.id = Room.generateRoomId();
     this.gameEngine = new GameEngine();
     this.roundManager = new RoundManager(this);
@@ -36,14 +36,14 @@ export class Room {
     }
 
     // Check if room is full
-    if (this.players.size >= 12) {
+    if (this.players.length >= 12) {
       throw new Error(SERVER_ERROR_MESSAGES[ServerErrorType.MAX_PLAYERS_REACHED]);
     }
 
     // Add player to room
     player.room = this;
     this.gameEngine.addPlayer(player.gamePlayer);
-    this.players.set(player.id, player);
+    this.players.push(player);
 }
 
   // Remove player from the room
@@ -54,17 +54,18 @@ export class Room {
     }
 
     // Remove player from room
-    const player = this.players.get(playerId);
+    const player = this.players.find((p: Player) => p.id === playerId);
     if (player) {
       player.room = undefined;
     }
     this.gameEngine.removePlayer(playerId);
-    this.players.delete(playerId);
+    this.players = this.players.filter((p: Player) => p.id !== playerId);
   }
 
   //check if player in room
-  public hasPlayer = (playerId: string): boolean => this.players.has(playerId);
-
+  public hasPlayer = (playerId: string): boolean =>
+    this.players.some(player => player.id === playerId);
+  
   public toJSON() {
     return {
       id: this.id,
