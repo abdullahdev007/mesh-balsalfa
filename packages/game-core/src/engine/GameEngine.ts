@@ -41,6 +41,9 @@ export class GameEngine extends EventEmitter {
 
   public addPlayer(player: Omit<Player, "score" | "role">): void {
     try {
+      if (this.stateManager.state.players.length >= 12) {
+        throw Error(ERRORS.MAX_PLAYERS_REACHED);
+      }
       if (
         this.stateManager.state.players.some(
           (p: Player) => p.username === player.username
@@ -240,10 +243,6 @@ export class GameEngine extends EventEmitter {
       this.emit(GameEvent.ERROR, error);
     }
   }
-
-  public canStartVoting = (playerID: string): boolean =>
-    this.state.phase === "free-questions-phase" &&
-    this.freeQuestionSystem.canStartVoting(playerID);
 
   public startVoting(): void {
     try {

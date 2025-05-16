@@ -159,7 +159,6 @@ export const handleRoundEvents = (
         roundManager.cancelCountdown(timerId);
         timerComplete();
       }
-
     } catch (error) {
       console.log(`Error on ROLE_TAKED event : ${error}`);
       callback({
@@ -175,7 +174,6 @@ export const handleRoundEvents = (
     try {
       const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
       const room: Room = player.room!;
-      
 
       if (!player || !room)
         return callback({
@@ -194,12 +192,12 @@ export const handleRoundEvents = (
         });
 
       const question: Question = room.gameEngine.askNextQuestion()!;
-      io.to(room.id).emit(ServerEvents.QUESTION_ASKED, question );
+      io.to(room.id).emit(ServerEvents.QUESTION_ASKED, question);
       return callback({ success: true });
-      
     } catch (error) {
       console.log(`Error on QUESTION_ASK_DONE event : ${error}`);
-      callback({
+
+      return callback({
         success: false,
         error: {
           message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
@@ -208,75 +206,104 @@ export const handleRoundEvents = (
     }
   });
 
-  socket.on(ClientEvents.ASK_FREE_QUESTION, (targetPlayerID: string) => {
-    try {
-      const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
-      const room: Room = player.room!;
-      if (!player || !room)
-        return io.to(socket.id).emit(ServerEvents.ERROR, {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+  socket.on(
+    ClientEvents.ASK_FREE_QUESTION,
+    (targetPlayerID: string, callback) => {
+      try {
+        const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
+        const room: Room = player.room!;
+
+        console.log(targetPlayerID);
+
+        if (!player || !room)
+          return callback({
+            success: false,
+            error: {
+              message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+            },
+          });
+
+        if (room.gameEngine.state.phase !== "free-questions-phase")
+          return callback({
+            success: false,
+            error: {
+              message:
+                SERVER_ERROR_MESSAGES[ServerErrorType.INVALID_ROUND_PHASE],
+            },
+          });
+
+        const question: Question = room.gameEngine.askFreeQuestion(
+          player.id,
+          targetPlayerID
+        )!;
+
+        io.to(room.id).emit(ServerEvents.FREE_QUESTION_ASKED, question);
+        return callback({ success: true });
+      } catch (error) {
+        console.log(`Error on  ASK_FREE_QUESTION event : ${error}`);
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+          },
         });
-
-      if (room.gameEngine.state.phase !== "free-questions-phase")
-        return io.to(socket.id).emit(ServerEvents.ERROR, {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.INVALID_ROUND_PHASE],
-        });
-
-      const question: Question = room.gameEngine.askFreeQuestion(
-        player.id,
-        targetPlayerID
-      )!;
-      io.to(room.id).emit(ServerEvents.FREE_QUESTION_ASKED, { question });
-    } catch (error) {
-      console.log(`Error on  ASK_FREE_QUESTION event : ${error}`);
-      io.to(socket.id).emit(ServerEvents.ERROR, {
-        message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
-      });
-    }
-  });
-
-  socket.on(ClientEvents.FREE_QUESTION_ASK_DONE, () => {
-    try {
-      const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
-      const room: Room = player.room!;
-      if (!player || !room)
-        return io.to(socket.id).emit(ServerEvents.ERROR, {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
-        });
-
-      io.to(room.id).emit(ServerEvents.FREE_QUESTION_ASK_DONE);
-    } catch (error) {
-      console.log(`Error on  FREE_QUESTION_ASK_DONE event : ${error}`);
-      io.to(socket.id).emit(ServerEvents.ERROR, {
-        message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
-      });
-    }
-  });
-
-  socket.on(ClientEvents.START_VOTING, () => {
-    try {
-      const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
-      const room: Room = player.room!;
-
-      if (!player || !room) {
-        io.to(socket.id).emit(ServerEvents.ERROR, {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
-        });
-        return;
       }
+    }
+  );
 
-      if (!room.gameEngine.canStartVoting(player.id)) {
-        io.to(socket.id).emit(ServerEvents.ERROR, {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.NOT_ADMIN],
+  socket.on(
+    ClientEvents.FREE_QUESTION_ASK_DONE,
+    (nextAskerID: string, callback) => {
+      try {
+        console.log(nextAskerID, "free question ask done");
+
+        const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
+        const room: Room = player.room!;
+
+        if (!player || !room)
+          return callback({
+            success: false,
+            error: {
+              message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+            },
+          });
+
+        io.to(room.id).emit(ServerEvents.FREE_QUESTION_ASK_DONE, nextAskerID);
+        return callback({ success: true });
+      } catch (error) {
+        console.log(`Error on  FREE_QUESTION_ASK_DONE event : ${error}`);
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+          },
         });
-        return;
       }
+    }
+  );
+
+  socket.on(ClientEvents.START_VOTING, (callback) => {
+    try {
+      const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
+      const room: Room = player.room!;
+
+      if (!player || !room)
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+          },
+        });
 
       room.gameEngine.startVoting();
+
     } catch (error) {
       console.log(`Error on START_VOTING event : ${error}`);
-      io.to(socket.id).emit(ServerEvents.ERROR, {
-        message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+      return callback({
+        success: false,
+        error: {
+          message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+        },
       });
     }
   });

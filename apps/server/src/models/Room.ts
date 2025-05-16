@@ -2,6 +2,7 @@ import { Player } from "./index.js";
 import { RoundManager } from "../managers/index.js";
 import { GameEngine } from "@repo/game-core";
 import { customAlphabet } from "nanoid";
+import { SERVER_ERROR_MESSAGES, ServerErrorType } from "@repo/shared";
 export class Room {
   public players: Map<string, Player> = new Map();
   public id: string;
@@ -34,11 +35,16 @@ export class Room {
       );
     }
 
+    // Check if room is full
+    if (this.players.size >= 12) {
+      throw new Error(SERVER_ERROR_MESSAGES[ServerErrorType.MAX_PLAYERS_REACHED]);
+    }
+
     // Add player to room
     player.room = this;
     this.gameEngine.addPlayer(player.gamePlayer);
     this.players.set(player.id, player);
-  }
+}
 
   // Remove player from the room
   public removePlayer(playerId: string): void {

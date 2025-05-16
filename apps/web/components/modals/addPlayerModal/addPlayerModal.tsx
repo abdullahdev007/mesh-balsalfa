@@ -5,6 +5,7 @@ import { useTheme } from "@/context/ThemeContext";
 import ReactModal from "react-modal";
 import { generateUserId } from "@repo/game-core";
 import { useGame } from "@/context/GameContext";
+import toast from "react-hot-toast";
 
 interface AddPlayerModalProps {
   isOpen: boolean;
@@ -19,6 +20,12 @@ function AddPlayerModal({ isOpen, onClose }: AddPlayerModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim()) {
+      // Check if maximum player limit is reached
+      if (offline.state.players.length >= 12) {
+        toast.error("لا يمكن إضافة المزيد من اللاعبين، الحد الأقصى هو 12 لاعب");
+        return;
+      }
+      
       offline.addPlayer({
         username: username,
         id: generateUserId(),

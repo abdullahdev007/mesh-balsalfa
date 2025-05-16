@@ -20,6 +20,8 @@ export const OnlineEngineEvents = {
   PHASE_CHANGED: "phase:changed",
   ROUND_ENDED: "round:ended",
   NEW_QUESTION: "round:new_question",
+  FREE_QUESTION_ASKED: "round:free_question",
+  FREE_QUESTION_ASK_DONE: "round:free_question_done",
 };
 
 export class OnlineGameSystem {
@@ -130,6 +132,17 @@ export class OnlineGameSystem {
       this.emit(OnlineEngineEvents.NEW_QUESTION, question);
     });
 
+    this.socket.on(ServerEvents.FREE_QUESTION_ASKED, (question: Question) => {
+      this.emit(OnlineEngineEvents.FREE_QUESTION_ASKED, question);
+    });
+
+    this.socket.on(
+      ServerEvents.FREE_QUESTION_ASK_DONE,
+      (nextAskerID: string) => {
+        this.emit(OnlineEngineEvents.FREE_QUESTION_ASK_DONE, nextAskerID);
+      }
+    );
+
     this.socket.on(ServerEvents.ROUND_ENDED, (round: Round) => {
       this.currentRound = round;
       this.currentPhase = "lobby";
@@ -183,7 +196,12 @@ export class OnlineGameSystem {
   }
 
   async joinRoom(roomID: string) {
+    if (this.players.length >= 12) 
+      return toast.error("لا يمكن الانضمام إلى الغرفة، الحد الأقصى هو 12 لاعب");
+    
     return new Promise((resolve) => {
+      // Check if maximum player limit is reached
+
       this.socket.emit(ClientEvents.JOIN_ROOM, roomID, (response: any) => {
         if (!response.success) {
           const errorMessage =
@@ -225,7 +243,7 @@ export class OnlineGameSystem {
           resolve(false);
         } else {
           this.cleanupGameEngine();
-          
+
           this.router.push("/");
 
           resolve(true);
@@ -291,7 +309,7 @@ export class OnlineGameSystem {
     });
   }
 
-  async askNextQuestion() {    
+  async askNextQuestion() {
     return new Promise((resolve) => {
       this.socket.emit(ClientEvents.ASK_NEXT_QUESTION, (response: any) => {
         if (!response.success) {
@@ -305,6 +323,60 @@ export class OnlineGameSystem {
     });
   }
 
+  async askFreeQuestion(targetPlayerID: string) {
+    return new Promise((resolve) => {
+      this.socket.emit(
+        ClientEvents.ASK_FREE_QUESTION,
+         targetPlayerID ,
+        (response: any) => {
+          if (!response.success) {
+            const errorMessage = response.error?.message || "فشل في السؤال";
+            toast.error(errorMessage);
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        }
+      );
+    });
+  }
+
+  async freeQuestionAskDone(nextAskerID: string) {
+    console.log("here");
+
+    return new Promise((resolve) => {
+      this.socket.emit(
+        ClientEvents.FREE_QUESTION_ASK_DONE,
+         nextAskerID ,
+        (response: any) => {
+          if (!response.success) {
+            const errorMessage = response.error?.message || "فشل في السؤال";
+            toast.error(errorMessage);
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        }
+      );
+    });
+  }
+
+  async startVoting() {
+    return new Promise((resolve) => {
+      this.socket.emit(
+        ClientEvents.START_VOTING,
+        (response: any) => {
+          if (!response.success) {
+            const errorMessage = response.error?.message || "فشل في السؤال";
+            toast.error(errorMessage);
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        }
+      );
+    });
+  }
   // Event system
 
   on(event: string, callback: Function) {
@@ -351,7 +423,6 @@ export class OnlineGameSystem {
     this.currentPhase = null;
     this.playerID = null;
     this.waitingForRoleAssignment = false;
-
 
     // Clear all event listeners
     this.listeners.clear();

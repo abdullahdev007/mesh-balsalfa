@@ -22,7 +22,7 @@ const Questions: FC = () => {
   const [description, setDescription] = useState<string>(
     mode === "online" ? INITIAL_ONLINE_MESSAGE : INITIAL_OFFLINE_MESSAGE
   );
-  const [askerID, setAskerID] = useState<string|null>(null);
+  const [askerID, setAskerID] = useState<string | null>(null);
 
   const toastIdRef = useRef<string | undefined>(undefined);
 
@@ -31,22 +31,20 @@ const Questions: FC = () => {
     onComplete: () => {
       if (mode === "online") {
         toast.dismiss(toastIdRef.current);
-        if(online.isAdmin) nextQuestion();
+        if (online.isAdmin) nextQuestion();
       }
-    },
+    }
   });
 
   useEffect(() => {
-    if (timeLeft > 0 && mode === "online") {
+    if (timeLeft > 0) {
       toastIdRef.current = toast(TIMER_MESSAGE(timeLeft), {
         id: "countdown-toast",
       });
     }
-  }, [timeLeft, mode]);
+  }, [timeLeft]);
 
   const nextQuestion = useCallback(() => {
-    console.log("ask next question");
-
     if (mode === "online") {
       online.askNextQuestion();
     } else if (mode === "offline") {
@@ -58,12 +56,13 @@ const Questions: FC = () => {
     const handleNewQuestion = (question: Question) => {
       setIsTypewriterComplete(false);
 
-      setAskerID(question.asker.id);
+      if (question) {
+        setAskerID(question.asker.id);
 
-      console.log("handle new question event :", question);
-      setDescription(
-        QUESTION_MESSAGE(question.asker.username, question.target.username)
-      );
+        setDescription(
+          QUESTION_MESSAGE(question.asker.username, question.target.username)
+        );
+      }
     };
 
     if (mode === "online") {
@@ -94,7 +93,10 @@ const Questions: FC = () => {
       </div>
       <button
         className={`${mainStyles.nextButton}`}
-        disabled={!isTypewriterComplete || (askerID !== online?.playerID)}
+        disabled={
+          !isTypewriterComplete ||
+          (mode == "online" && askerID !== online?.playerID)
+        }
         onClick={() => nextQuestion()}
       >
         التالي
