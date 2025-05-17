@@ -68,9 +68,11 @@ const RoleAssignment: React.FC = () => {
 
   const currentPlayer = offline.state.players[currentPlayerIndex];
   const isSpy = currentPlayer?.role === "Spy";
-  const topic = offline.state.rounds[0]?.topic?.name || "No Topic";
+  const topic = offline.getCurrentRound?.topic?.name || "No Topic";
+
 
   const getCurrentText = () => {
+    
     if (!showingRole) {
       return PASS_DEVICE_MESSAGE(currentPlayer?.username || "");
     }

@@ -25,17 +25,7 @@ export default function GamePage() {
 
   useEffect(() => {
     const handlePhaseChange = (phase: GamePhase) => {
-      if (phase === "guess-topic") {
-
-        const timer = setTimeout(() => {
-          setCurrentScreen("show-spy");
-          setTimeout(() => {
-            setCurrentScreen("guess-topic");
-          }, 5000); 
-        }, 500); 
-        return () => clearTimeout(timer);
-      }
-      setCurrentScreen(phase);
+     setCurrentScreen(phase);
     };
 
 

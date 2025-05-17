@@ -57,7 +57,7 @@ const WaitingPage = () => {
       setPlayers([...players]);
     };
 
-    const handleRoundStarted = () => {
+    const handleRoundStarted = (Round: any) => {     
       router.push(`/game`);
     };
 
@@ -66,12 +66,13 @@ const WaitingPage = () => {
     };
 
     const handlePlayerLeft = (player: Player) => {
+      
       setPlayers((prevPlayers) =>
         prevPlayers.filter((p) => p.id !== player.id)
       );
     };
 
-    const handlePlayerJoined = (player: Player) => {      
+    const handlePlayerJoined = (player: Player) => {            
       setPlayers((prevPlayer: Player[]) => [...prevPlayer, player]); 
     }
 
@@ -89,6 +90,7 @@ const WaitingPage = () => {
       offline.on(GameEvent.PLAYER_LEFT, handlePlayerLeft);
       offline.on(GameEvent.PLAYER_JOINED, handlePlayerJoined);
       offline.on(GameEvent.ERROR, handleError);
+
     }
 
     return () => {
@@ -102,7 +104,11 @@ const WaitingPage = () => {
       } else if (mode === "offline") {
         offline.off(GameEvent.CATEGORY_CHANGED, handleCategoryUpdate);
         offline.off(GameEvent.ROUND_STARTED, handleRoundStarted);
+        offline.on(GameEvent.PLAYER_LEFT, handlePlayerLeft);
+        offline.on(GameEvent.PLAYER_JOINED, handlePlayerLeft);
         offline.off(GameEvent.ERROR, handleError);
+
+        
       }
     };
   }, [online, offline, mode, router]);
@@ -112,13 +118,11 @@ const WaitingPage = () => {
     return null;
   }
 
-  const handleOpenTopicsModal = () => {
-    setIsTopicsModalOpen(true);
-  };
+  const handleOpenTopicsModal = () => setIsTopicsModalOpen(true);
+  
 
-  const handleCloseTopicsModal = () => {
-    setIsTopicsModalOpen(false);
-  };
+  const handleCloseTopicsModal = () => setIsTopicsModalOpen(false);
+  
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(online.roomID ?? "");
@@ -151,14 +155,6 @@ const WaitingPage = () => {
       offline.startNewRound();
     }
   };
-
-  useEffect(() => {
-    return () => {
-        if (mode === 'offline') {
-            cleanupOfflineGameEngine();
-        }
-    };
-}, [mode]);
 
   return (
     <div className={styles.container}>
