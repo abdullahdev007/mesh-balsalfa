@@ -1,5 +1,4 @@
 import React, {  useState } from "react";
-import styles from "./styles.module.scss";
 import mainStyles from "../../styles.module.scss";
 import { useGame } from "@/context/GameContext";
 import TypewriterText from "@/components/Typewriter/Typewriter";

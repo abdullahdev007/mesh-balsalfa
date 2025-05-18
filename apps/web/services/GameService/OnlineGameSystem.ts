@@ -82,6 +82,10 @@ export class OnlineGameSystem {
       ServerEvents.ROOM_DESTROYED,
       (response: { roomId: string; message: string }) => {
         this.cleanupGameEngine();
+
+        toast.dismiss(OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID);
+        toast.dismiss(OnlineGameSystem.VOTING_WAITING_TOAST_ID);
+
         toast.error(response.message);
         this.router.push("/");
       }
@@ -104,6 +108,9 @@ export class OnlineGameSystem {
     this.socket.on(ServerEvents.ROUND_DESTROYED, (messaage: string) => {
       toast.error(messaage);
       toast.dismiss(OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID);
+      toast.dismiss(OnlineGameSystem.VOTING_WAITING_TOAST_ID);
+
+      this.currentRound = null;
 
       this.router.push("/lobby");
 
@@ -153,8 +160,15 @@ export class OnlineGameSystem {
       this.emit(OnlineEngineEvents.ROUND_ENDED, round);
     });
 
-    this.socket.on(ServerEvents.PHASE_CHANGED, (phase: GamePhase) => {
+    this.socket.on(ServerEvents.PHASE_CHANGED, (response: {phase: GamePhase, currentRound: Round}) => {
+
+      const { phase, currentRound } = response;
+
+      if (phase === "show-spy") toast.dismiss(OnlineGameSystem.VOTING_WAITING_TOAST_ID);
+      else if (phase === "questions-phase") toast.dismiss(OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID);
+      
       this.currentPhase = phase;
+      this.currentRound = currentRound;
 
       this.emit(OnlineEngineEvents.PHASE_CHANGED, phase);
     });
@@ -197,11 +211,15 @@ export class OnlineGameSystem {
         this.waitingForVoting = false;
       }
     );
-    this.socket.on(ServerEvents.KICKED_FROM_ROOM, (response: { message: string }) => {
-      toast.error(response.message);
-      this.cleanupGameEngine();
-      this.router.push("/");
-    });
+
+    this.socket.on(
+      ServerEvents.KICKED_FROM_ROOM,
+      (response: { message: string }) => {
+        toast.error(response.message);
+        this.cleanupGameEngine();
+        this.router.push("/");
+      }
+    );
   }
 
   // Category management
@@ -273,8 +291,6 @@ export class OnlineGameSystem {
       });
     });
   }
-  
-  
 
   async leaveRoom() {
     return new Promise((resolve) => {
@@ -435,6 +451,21 @@ export class OnlineGameSystem {
     });
   }
 
+  async startGuessTopic() {
+    return new Promise((resolve) => {
+      this.socket.emit(ClientEvents.START_GUESS_TOPIC, (response: any) => {
+        if (!response.success) {
+          toast.error(
+            response.error?.message || "فشل في الانتقال إلى المرحلة التالية"
+          );
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  }
+
   // Event system
 
   on(event: string, callback: Function) {
@@ -495,4 +526,3 @@ export class OnlineGameSystem {
     this.socket.connect();
   }
 }
-

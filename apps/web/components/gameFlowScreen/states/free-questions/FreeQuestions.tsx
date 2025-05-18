@@ -1,6 +1,5 @@
 import { FC, useCallback, useEffect, useRef, useState } from "react";
 import mainStyles from "../../styles.module.scss";
-import styles from "./styles.module.scss";
 import TypewriterText from "@/components/Typewriter/Typewriter";
 import { useGame } from "@/context/GameContext";
 import { GameEvent, Question } from "@repo/game-core";
@@ -184,7 +183,7 @@ const FreeQuestions: FC = () => {
       )}
 
       <button
-        className={`${mainStyles.nextButton} ${styles.voteButton}`}
+        className={mainStyles.nextButton}
         onClick={handleActionButton}
         disabled={!isTypewriterComplete || actionButtonLabel === "التالي"}
       >

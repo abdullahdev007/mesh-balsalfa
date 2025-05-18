@@ -31,7 +31,7 @@ export class GameStateManager {
   public updateState = (updates: Partial<GameState>) =>
     (this.state = { ...this.state, ...updates });
 
-  public addPlayer(player: Omit<Player, "score" | "role">): Player   {
+  public addPlayer(player: Omit<Player, "score" | "role">): Player {
     const newPlayer: Player = {
       ...player,
       role: undefined,
@@ -61,7 +61,6 @@ export class GameStateManager {
   }
 
   public endCurrentRound(): void {
-    this.determineScores();
     this.state.currentRound++;
     this.resetForNewRound();
   }
@@ -72,51 +71,7 @@ export class GameStateManager {
     });
   }
 
-  public determineScores(): void {
-    const currentRound = this.getCurrentRound();
-    if (!currentRound) throw new Error("No active round found");
-
-    const { players, votes, spy, guessedTopic } = currentRound;
-
-    const insiderVotes = votes.filter(
-      (vote: VoteResult) => vote.voterID !== spy.id
-    );
-
-    const spyGuessedCorrectly = guessedTopic?.id === currentRound.topic.id;
-
-    const correctVotes = insiderVotes.filter(
-      (vote: VoteResult) => vote.suspectID === spy.id
-    );
-    const allInsidersGuessedCorrectly: boolean =
-      correctVotes.length === players.length - 1;
-    const allInsidersGuessedWrong: boolean = correctVotes.length === 0;
-
-    const scores: ScoreEntry[] = players.map((player) => {
-      let score = 0;
-
-      if (player.role === "Spy") {
-        if (spyGuessedCorrectly) score += 10;
-        if (allInsidersGuessedCorrectly) score -= 5;
-        if (allInsidersGuessedWrong) score += 5;
-      } else if (
-        votes.find((vote: VoteResult) => vote.voterID === player.id)
-          ?.suspectID === spy.id
-      )
-        score += 10;
-
-      return {
-        playerID: player.id,
-        score,
-      };
-    });
-
-    currentRound.scores = scores;
-
-    // 5. تحديث النقاط الإجمالية للاعبين
-    this.updateTotalScores(scores);
-  }
-
-  private updateTotalScores(scores: ScoreEntry[]): void {
+  public updateTotalScores(scores: ScoreEntry[]): void {
     scores.forEach((roundScore) => {
       const player = this.state.players.find(
         (p) => p.id === roundScore.playerID

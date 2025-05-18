@@ -8,6 +8,7 @@ import {
   TopicCategory,
   Round,
   Question,
+  ScoreEntry,
 } from "../models/index.js";
 
 import { GameStateManager } from "./StateManager.js";
@@ -68,7 +69,7 @@ export class GameEngine extends EventEmitter {
   }
 
   public removePlayer(playerID: string): void {
-    try {      
+    try {
       const player: Player = this.stateManager.state.players.find(
         (p: Player) => p.id === playerID
       )!;
@@ -209,11 +210,10 @@ export class GameEngine extends EventEmitter {
         this.stateManager.updateState({ phase: "free-questions-phase" });
         this.emit(GameEvent.PHASE_CHANGED, this.stateManager.state.phase);
       }
-      
+
       const question: Question = this.questionSystem.getNextQuestion()!;
-      
+
       if (question) this.emit(GameEvent.QUESTION_ASKED, question);
-      
 
       return question;
     } catch (error) {
@@ -286,6 +286,24 @@ export class GameEngine extends EventEmitter {
       if (this.stateManager.state.phase != "voting")
         throw Error(ERRORS.INVALID_PHASE);
 
+      const currentRound = this.stateManager.getCurrentRound();
+      if (!currentRound) throw new Error("No active round found");
+
+      const { players, votes, spy } = currentRound;
+      
+      // Calculate insider scores
+      const scores: ScoreEntry[] = players.map((player) => {
+        let score = 0;
+        if (player.role === "Insider" && 
+            votes.find((vote: VoteResult) => vote.voterID === player.id)?.suspectID === spy.id) {
+          score += 10;
+        }
+        return { playerID: player.id, score };
+      });
+
+      currentRound.scores = scores;
+      this.stateManager.updateTotalScores(scores);
+
       this.stateManager.updateState({ phase: "show-spy" });
       this.emit(GameEvent.PHASE_CHANGED, this.stateManager.state.phase);
     } catch (error) {
@@ -294,6 +312,7 @@ export class GameEngine extends EventEmitter {
     }
   }
 
+  
   public guessTopic(topicID: string, playerID: string) {
     try {
       if (this.stateManager.state.phase != "guess-topic")
@@ -302,10 +321,35 @@ export class GameEngine extends EventEmitter {
       if (playerID !== this.stateManager.getCurrentRound()?.spy.id)
         throw Error(ERRORS.ONLY_SPY_CAN_GUESS);
 
-      this.stateManager.getCurrentRound()!.guessedTopic =
-        this.topicManager.getTopic(topicID);
+      const currentRound = this.stateManager.getCurrentRound()!;
+      currentRound.guessedTopic = this.topicManager.getTopic(topicID);
 
-      this.stateManager.endCurrentRound();
+      // Calculate spy score
+      const spyGuessedCorrectly = currentRound.guessedTopic?.id === currentRound.topic.id;
+      const correctVotes = currentRound.votes.filter(
+        (vote: VoteResult) => vote.voterID !== currentRound.spy.id && vote.suspectID === currentRound.spy.id
+      );
+      const allInsidersGuessedCorrectly = correctVotes.length === currentRound.players.length - 1;
+      const allInsidersGuessedWrong = correctVotes.length === 0;
+
+      let spyScore = 0;
+      if (spyGuessedCorrectly) spyScore += 10;
+      if (allInsidersGuessedCorrectly) spyScore -= 5;
+      if (allInsidersGuessedWrong) spyScore += 5;
+
+      // Update spy score in current round scores
+      const updatedScores = [...currentRound.scores];
+      const spyScoreEntry = { playerID: currentRound.spy.id, score: spyScore };
+      const spyIndex = updatedScores.findIndex(s => s.playerID === currentRound.spy.id);
+      if (spyIndex >= 0) {
+        updatedScores[spyIndex] = spyScoreEntry;
+      } else {
+        updatedScores.push(spyScoreEntry);
+      }
+      currentRound.scores = updatedScores;
+
+      // Update total scores
+      this.stateManager.updateTotalScores([spyScoreEntry]);
 
       this.emit(
         GameEvent.ROUND_ENDED,
@@ -321,7 +365,7 @@ export class GameEngine extends EventEmitter {
 
   public destroyRound(): void {
     try {
-      if(this.stateManager.state.phase === "lobby")
+      if (this.stateManager.state.phase === "lobby")
         throw Error(ERRORS.INVALID_PHASE);
 
       const currentRound = this.stateManager.getCurrentRound();
@@ -332,7 +376,7 @@ export class GameEngine extends EventEmitter {
         phase: "lobby",
         rounds: this.stateManager.state.rounds.filter(
           (r) => r.roundNumber !== this.stateManager.state.currentRound
-        )
+        ),
       });
 
       this.emit(GameEvent.ROUND_ENDED, "Round was destroyed");

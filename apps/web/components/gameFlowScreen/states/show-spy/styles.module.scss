@@ -1,8 +1,81 @@
-.container {
+.votesContainer {
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+
+}
+.votes {
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  height: 100%;
-  width: 100%;
+  align-items: center;
+  list-style: none;
+}
+
+.voteItem {
+  background-color:  color-mix(in srgb, var(--reverse-theme-color), transparent 80%);
+  border-radius: 8px;
+  padding: 0.7rem;
+  margin: 0.5rem 0;
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: slideIn 1s ease forwards;
+  font-size: 0.7em;
+
+  width: 50%;
+
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  strong {
+    padding: 0.3em 0.7em;
+    border-radius: 25px;
+    position: absolute;
+    top: -10px;
+    left: -40px;
+
+    opacity: 0;
+    transform: translateX(-20px);
+
+    animation: slideIn 4s ease forwards;
+
+
+  }
+
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.02);
+    transition: all 0.3s ease;
+  }
+
+
+  @media screen and (max-width: 600px) {
+    width: 75%;
+    padding: 1.3rem;
+      strong {
+        left: -20px;
+      }
+
+      font-size: 0.7em;
+    
+  }
+
+  @media screen and (max-width: 300px) {
+    width: 100%;
+    strong {
+      position: static;
+      left: 0;
+      top: 0;
+    }
+  }
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

@@ -81,7 +81,7 @@ export const handleRoundEvents = (
       room.gameEngine.removeAllListeners();
 
       room.gameEngine.on(GameEvent.PHASE_CHANGED, (phase: GamePhase) => {
-        io.to(room.id).emit(ServerEvents.PHASE_CHANGED, phase);
+        io.to(room.id).emit(ServerEvents.PHASE_CHANGED, {phase, currentRound: room.gameEngine.getCurrentRound});
       });
 
       room.gameEngine.on(GameEvent.ROUND_ENDED, (round: Round) => {
@@ -136,7 +136,7 @@ export const handleRoundEvents = (
 
       const readyCount = roundManager.getReadyCount(timerId);
 
-      if (readyCount < room.players.size) {
+      if (readyCount < room.players.length) {
         callback({
           success: true,
           message: SERVER_MESSAGES.ROLE_ASSIGN_WAITING_PLAYERS,
@@ -155,7 +155,7 @@ export const handleRoundEvents = (
           duration: 35000,
           onExpire: () => timerComplete(),
         });
-      } else if (readyCount === room.players.size) {
+      } else if (readyCount === room.players.length) {
         roundManager.cancelCountdown(timerId);
         timerComplete();
       }
@@ -338,7 +338,7 @@ export const handleRoundEvents = (
       roundManager.addToWaitingList(player.id, timerId);
       const votedCount = roundManager.getReadyCount(timerId);
 
-      if (votedCount < room.players.size) {
+      if (votedCount < room.players.length) {
         callback({
           success: true,
           message: SERVER_MESSAGES.VOTING_WAITING_PLAYERS,
@@ -369,7 +369,7 @@ export const handleRoundEvents = (
             );
           },
         });
-      } else if (votedCount === room.players.size) {
+      } else if (votedCount === room.players.length) {
         roundManager.cancelCountdown(timerId);
         const message = SERVER_MESSAGES.VOTING_COUNTDOWN_COMPLETED;
         io.to(room.id).emit(ServerEvents.VOTING_COUNTDOWN_COMPLETE, message);
@@ -417,4 +417,39 @@ export const handleRoundEvents = (
       });
     }
   });
+
+socket.on(ClientEvents.START_GUESS_TOPIC, (callback) => {
+  try {
+    const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
+    const room: Room = player.room!;
+
+    if (!player || !room)
+      return callback({
+        success: false,
+        error: {
+          message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+        },
+      });
+
+    if (room.gameEngine.state.phase !== "show-spy")
+      return callback({
+        success: false,
+        error: {
+          message: SERVER_ERROR_MESSAGES[ServerErrorType.INVALID_ROUND_PHASE],
+        },
+      });
+
+    room.gameEngine.emit(GameEvent.PHASE_CHANGED, "guess-topic");
+
+    return callback({ success: true });
+  } catch (error) {
+    console.log(`Error on START_GUESS_TOPIC event : ${error}`);
+    return callback({
+      success: false,
+      error: {
+        message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+      },
+    });
+  }
+});
 };

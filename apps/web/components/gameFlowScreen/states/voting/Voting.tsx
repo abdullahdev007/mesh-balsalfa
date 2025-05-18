@@ -2,17 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import mainStyles from "../../styles.module.scss";
 import TypewriterText from "@/components/Typewriter/Typewriter";
 import { useGame } from "@/context/GameContext";
-import { useCountdown } from "@/hooks/useCountdown";
-import toast from "react-hot-toast";
-import { GameEvent, GamePhase } from "@repo/game-core";
 
 const ONLINE_MESSAGE = (username: string) =>
   `${username} اختار الشخص اللي بتشك انه برا السالفة او اذا انت برا السالفة اختار اي حدا تصويتك ما حينحسب`;
 const OFFLINE_MESSAGE = (username: string) =>
   `اعطو الجهاز ل ${username} ، اختار الشخص اللي بتشك انه برا السالفة او اذا انت برا السالفة اختار اي حدا تصويتك ما حينحسب`;
 
-const TIMER_MESSAGE = (seconds: number) =>
-  `ستنتهي مرحلة التصويت بعد ${seconds} ثواني يرجى الانتظار`;
 const Voting: React.FC = () => {
   const { online, offline, mode } = useGame();
 
@@ -20,37 +15,35 @@ const Voting: React.FC = () => {
 
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [voterID, setVoterID] = useState<string | null>(
-    mode === "online" ? online.playerID : offline.state.players[currentIndex]?.id!
+    mode === "online"
+      ? online.playerID
+      : offline.state.players[currentIndex]?.id!
   );
 
   const [waitCompleteVoting, setWaitCompleteVoting] = useState<boolean>(false);
-  const toastIdRef = useRef<string | undefined>(undefined);
-
-
 
   const handleVoteButton = useCallback(
     (suspectID: string) => {
       if (!voterID) return;
-  
+
+      setIsTypewriterComplete(false);
+
       if (mode === "online") {
         online.castVote(suspectID);
         setWaitCompleteVoting(true);
       } else if (mode === "offline") {
         offline.castVote(voterID, suspectID);
-  
-        const nextIndex = currentIndex + 1; 
+
+        const nextIndex = currentIndex + 1;
 
         setCurrentIndex(nextIndex);
-  
- 
-        if(offline.state.players[nextIndex]) setVoterID(offline.state.players[nextIndex]?.id!);
-        
-  
+
+        if (offline.state.players[nextIndex])
+          setVoterID(offline.state.players[nextIndex]?.id!);
       }
     },
     [mode, online, offline, voterID, currentIndex]
   );
-  
 
   const players = mode === "online" ? online.players : offline.state.players;
 
@@ -79,7 +72,11 @@ const Voting: React.FC = () => {
             key={player.id}
             className={mainStyles.playerButton}
             onClick={() => handleVoteButton(player.id)}
-            disabled={!isTypewriterComplete || voterID === player.id || waitCompleteVoting}
+            disabled={
+              !isTypewriterComplete ||
+              voterID === player.id ||
+              waitCompleteVoting
+            }
           >
             {player.username}
           </button>
