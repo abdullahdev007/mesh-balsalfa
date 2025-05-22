@@ -15,6 +15,7 @@ import { translateCategory } from "@repo/game-core";
 import { OnlineEngineEvents } from "@/services/GameService";
 import toast from "react-hot-toast";
 import { PlayerCard } from "@/components/PlayerCard/PlayerCard";
+import { RoundCard } from '@/components/RoundCard/RoundCard';
 
 const WaitingPage = () => {
   const router = useRouter();
@@ -37,7 +38,9 @@ const WaitingPage = () => {
     mode === "online" ? online.players : offline.state.players
   );
 
-  const [rounds, setRounds] = useState<Round[]>([]);
+  const [rounds, setRounds] = useState<Round[]>(
+    mode === "online"? online.rounds : offline.state.rounds
+  );
 
   useEffect(() => {
     if (mode === null) {
@@ -51,46 +54,43 @@ const WaitingPage = () => {
       toast.success(`تم تحديث السالفة الى ${translateCategory(category)}`);
     };
 
-    const handlePlayersUpdate = (
-      players: Player[]
-    ) => {
-      setPlayers([...players]);
-    };
+    const handlePlayersUpdate = (players: Player[]) => setPlayers(players);
 
-    const handleRoundStarted = (Round: any) => {     
-      router.push(`/game`);
-    };
+    const handleRoundStarted = () => router.push(`/game`);
 
-    const handleError = (error: Error) => {
-      toast.error(error.message);
-    };
+    const handleError = (error: Error) => toast.error(error.message);
 
     const handlePlayerLeft = (player: Player) => {
-      
       setPlayers((prevPlayers) =>
         prevPlayers.filter((p) => p.id !== player.id)
       );
     };
 
-    const handlePlayerJoined = (player: Player) => {            
-      setPlayers((prevPlayer: Player[]) => [...prevPlayer, player]); 
-    }
+    const handlePlayerJoined = (player: Player) => {      
+      setPlayers((prevPlayers: Player[]) => {
+        if (prevPlayers.some(p => p.id === player.id)) {
+          return prevPlayers; 
+        }
+        return [...prevPlayers, player];
+      });
+    };
 
+    const handleRoundsUpdate = (rounds: Round[]) => setRounds(rounds);
 
     if (mode === "online") {
       online.on(
         OnlineEngineEvents.TOPIC_CATEGORY_UPDATED,
         handleCategoryUpdate
       );
-      online.on(OnlineEngineEvents.ROUND_STARTED, handleRoundStarted);
       online.on(OnlineEngineEvents.PLAYERS_UPDATED, handlePlayersUpdate);
+      online.on(OnlineEngineEvents.ROUND_STARTED, handleRoundStarted);
+      online.on(OnlineEngineEvents.ROUNDS_UPDATED, handleRoundsUpdate);
     } else if (mode === "offline") {
       offline.on(GameEvent.CATEGORY_CHANGED, handleCategoryUpdate);
       offline.on(GameEvent.ROUND_STARTED, handleRoundStarted);
       offline.on(GameEvent.PLAYER_LEFT, handlePlayerLeft);
       offline.on(GameEvent.PLAYER_JOINED, handlePlayerJoined);
       offline.on(GameEvent.ERROR, handleError);
-
     }
 
     return () => {
@@ -101,28 +101,24 @@ const WaitingPage = () => {
         );
         online.off(OnlineEngineEvents.PLAYERS_UPDATED, handlePlayersUpdate);
         online.off(OnlineEngineEvents.ROUND_STARTED, handleRoundStarted);
+        online.off(OnlineEngineEvents.ROUNDS_UPDATED, handleRoundsUpdate);
       } else if (mode === "offline") {
         offline.off(GameEvent.CATEGORY_CHANGED, handleCategoryUpdate);
         offline.off(GameEvent.ROUND_STARTED, handleRoundStarted);
-        offline.on(GameEvent.PLAYER_LEFT, handlePlayerLeft);
-        offline.on(GameEvent.PLAYER_JOINED, handlePlayerLeft);
+        offline.off(GameEvent.PLAYER_LEFT, handlePlayerLeft);
+        offline.off(GameEvent.PLAYER_JOINED, handlePlayerJoined); 
         offline.off(GameEvent.ERROR, handleError);
-
-        
       }
     };
   }, [online, offline, mode, router]);
-
 
   if (mode === null) {
     return null;
   }
 
   const handleOpenTopicsModal = () => setIsTopicsModalOpen(true);
-  
 
   const handleCloseTopicsModal = () => setIsTopicsModalOpen(false);
-  
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(online.roomID ?? "");
@@ -133,26 +129,50 @@ const WaitingPage = () => {
     }, 1000);
   };
 
-  const handleLeaveGame = () => {
-    router.push("/");
+  const [isStartRoundLoading, setIsStartRoundLoading] = useState(false);
+  const [isLeaveGameLoading, setIsLeaveGameLoading] = useState(false);
+
+  const handleStartRound = async () => {
+    if (players.length < 3) {
+      return toast.error("لا يمكن بدء الجولة بأقل من 3 لاعبين ");
+    }
 
     if (mode === "online") {
-      online.leaveRoom();
+      if (!online.isAdmin) {
+        return toast.error("لا تمتتلك الصلاحية ل بدأ جولة جديدة");
+      }
+      setIsStartRoundLoading(true);
+      try {
+        await online.startRound();
+      } catch (error) {
+        toast.error("حدث خطأ أثناء بدء الجولة");
+      } finally {
+        setIsStartRoundLoading(false);
+      }
     } else if (mode === "offline") {
-      cleanupOfflineGameEngine();
+      setIsStartRoundLoading(true);
+      try {
+        await offline.startNewRound();
+      } catch (error) {
+        toast.error("حدث خطأ أثناء بدء الجولة");
+      } finally {
+        setIsStartRoundLoading(false);
+      }
     }
   };
 
-  const handleStartRound = () => {
-    if (players.length < 3)
-      return toast.error("لا يمكن بدء الجولة بأقل من 3 لاعبين ");
-
-    if (mode === "online") {
-      if (!online.isAdmin)
-        return toast.error("لا تمتتلك الصلاحية ل بدأ جولة جديدة");
-      online.startRound();
-    } else if (mode === "offline") {
-      offline.startNewRound();
+  const handleLeaveGame = async () => {
+    setIsLeaveGameLoading(true);
+    try {
+      if (mode === "online") {
+        await online.leaveRoom();
+      } else if (mode === "offline") {
+        await cleanupOfflineGameEngine();
+      }
+      router.push("/");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء مغادرة الغرفة");
+      setIsLeaveGameLoading(false);
     }
   };
 
@@ -224,11 +244,7 @@ const WaitingPage = () => {
             ) : (
               <ul>
                 {players?.map((player, index) => (
-                  <PlayerCard
-                    key={player.id}
-                    player={player}
-                    index={index}
-                  />
+                  <PlayerCard key={player.id} player={player} index={index} />
                 ))}
               </ul>
             )}
@@ -263,36 +279,7 @@ const WaitingPage = () => {
                 </div>
               ) : (
                 rounds.map((round) => (
-                  <div className={styles.round} key={round.roundNumber}>
-                    <div className={styles.roundNumber}>
-                      <strong>رقم الجولة : </strong>
-                      <span>{round.roundNumber}</span>
-                    </div>
-                    <div className={styles.topic}>
-                      <strong>السالفة : </strong>
-                      <span>{`${round.topicCategory}/${round.topic}`}</span>
-                    </div>
-                    <div className={styles.spy}>
-                      <strong>الجاسوس : </strong>
-                      <span>{round.spy.username}</span>
-                    </div>
-                    <div className={styles.guessedTopic}>
-                      <strong>السالفة المتوقعة من الجاسوس : </strong>
-                      <span>{round.guessedTopic?.name}</span>
-                    </div>
-                    <div className={styles.votes}>
-                      <strong>الاصوات :</strong>
-                      <div>
-                        {Object.entries(round.votes).map(
-                          ([string, voteResult]) => (
-                            <span key={string} className={styles.vote}>
-                              {`${players.find((p) => p.id == voteResult.voterID)?.username} -> ${players.find((p) => p.id == voteResult.suspectID)?.username}`}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  <RoundCard key={round.roundNumber} round={round} players={players} />
                 ))
               )}
             </div>
@@ -301,15 +288,22 @@ const WaitingPage = () => {
 
         <div className={styles.buttonsGroup}>
           {(mode === "offline" || (mode === "online" && online.isAdmin)) && (
-            <span className={styles.startRound} onClick={handleStartRound}>
-              بدء الجولة
+            <span
+              className={`${styles.startRound} ${isStartRoundLoading ? styles.disabled : ""}`}
+              onClick={!isStartRoundLoading ? handleStartRound : undefined}
+            >
+              {isStartRoundLoading ? "جاري بدء الجولة..." : "بدء الجولة"}
             </span>
           )}
           <span
-            className={`${styles.leaveGame} ${mode === "online" && !online.isAdmin ? styles.singleButton : ""}`}
-            onClick={handleLeaveGame}
+            className={`${styles.leaveGame} ${mode === "online" && !online.isAdmin ? styles.singleButton : ""} ${isLeaveGameLoading ? styles.disabled : ""}`}
+            onClick={!isLeaveGameLoading ? handleLeaveGame : undefined}
           >
-            {mode === "online" ? "ترك الغرفة" : "انهاء اللعبة"}
+            {isLeaveGameLoading
+              ? "جاري المغادرة..."
+              : mode === "online"
+                ? "ترك الغرفة"
+                : "انهاء اللعبة"}
           </span>
         </div>
       </div>

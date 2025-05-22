@@ -7,6 +7,7 @@ interface TypewriterTextProps {
   isArabic?: boolean;
   onComplete?: () => void;
   skipAnimation?: boolean;
+  className?: string;
 }
 
 const TypewriterText: React.FC<TypewriterTextProps> = ({
@@ -15,6 +16,7 @@ const TypewriterText: React.FC<TypewriterTextProps> = ({
   isArabic = false,
   onComplete,
   skipAnimation = false,
+  className = '',
 }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [index, setIndex] = useState(0);
@@ -52,7 +54,7 @@ const TypewriterText: React.FC<TypewriterTextProps> = ({
 
   return (
     <div
-      className={`${styles.typewriterContainer} ${isArabic ? styles.arabic : ''}`}
+      className={`${styles.typewriterContainer} ${isArabic ? styles.arabic : ''} ${className}`}
       dir={isArabic ? 'rtl' : 'ltr'}
     >
       <p className={styles.typewriterText}>{displayedText}</p>

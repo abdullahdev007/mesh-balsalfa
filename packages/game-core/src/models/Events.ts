@@ -5,6 +5,7 @@ export enum GameEvent {
   ROUND_STARTED = "roundStarted",
   QUESTION_ASKED = "questionAsked",
   FREE_QUESTION_ASKED = "freeQuestionAsked",
+  TOPIC_GUESSED = "topicGuessed",
   ROUND_ENDED = "roundEnded",
   STATE_UPDATED= "stateUpdated",
   TOPICS_UPDATED= "topicsUpdated",

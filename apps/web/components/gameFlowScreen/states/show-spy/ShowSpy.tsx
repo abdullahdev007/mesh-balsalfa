@@ -19,7 +19,7 @@ const ShowSpy: React.FC = () => {
       if (mode === "online") {
         if(online.isAdmin) online.startGuessTopic();
       } else {
-        offline.emit(GameEvent.PHASE_CHANGED, "guess-topic");
+        offline.startGuessTopic();
       }
     },
   });
@@ -31,7 +31,7 @@ const ShowSpy: React.FC = () => {
   // Show countdown toast when typewriter is complete
   React.useEffect(() => {
     
-    if (isFirstTypewriterComplete && timeLeft > 0) {
+    if (isSecondTypewriterComplete && timeLeft > 0) {
       toast.loading(`الانتقال إلى المرحلة التالية خلال ${timeLeft} ثواني`, {
         id: "phase-transition",
         duration: 1000,

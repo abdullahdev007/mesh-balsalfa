@@ -28,6 +28,7 @@ export const setupSocket = (io: Server) => {
 
       if (player) {
         player.name = newUsername;
+        player.gamePlayer.username = newUsername;
         socket.handshake.query.username = newUsername;
         io.to(socket.id).emit(ServerEvents.USERNAME_UPDATED, {
           username: newUsername,

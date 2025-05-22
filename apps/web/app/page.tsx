@@ -9,12 +9,13 @@ import { useState } from "react";
 import UsernameInput from "@/components/usernameInput/usernameInput";
 import { useRouter } from "next/navigation";
 import { useGame } from "@/context/GameContext";
+import { generateUserId } from "@repo/game-core";
 
 const Home = () => {
   const { theme } = useTheme();
   const [roomID, setRoomId] = useState<string>("");
   const router = useRouter();
-  const { online, setMode } = useGame();
+  const { online, setMode,offline,username } = useGame();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.toUpperCase();
@@ -40,6 +41,9 @@ const Home = () => {
   const handleStartLocalGame = () => {
     router.push("/lobby");
     setMode("offline");
+    if(username) 
+      offline.addPlayer({username: username,id: generateUserId()});
+
   };
 
   return (

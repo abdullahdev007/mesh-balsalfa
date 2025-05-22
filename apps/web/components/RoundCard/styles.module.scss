@@ -1,0 +1,42 @@
+.round {
+  background-color: var(--reverse-theme-color);
+  color: var(--theme-color);
+  border-radius: 25px;
+  text-align: right;
+  direction: rtl;
+  padding: 25px 25px;
+  font-size: 0.6rem;
+  border: 2px dashed $primary-color;
+  position: relative;
+
+  .roundNumber {
+    position: absolute;
+    right: -15px;
+    bottom: -15px;
+
+    font-size: 4.5em;
+    font-weight: 900;
+    color: $primary-color;
+  }
+  .votes {
+    display: flex;
+    gap: 10px;
+
+    div {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.8em;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .round {
+    font-size: 0.9rem;
+    padding: 15px;
+
+    .votes .vote {
+      font-size: 1.5em;
+    }
+  }
+}

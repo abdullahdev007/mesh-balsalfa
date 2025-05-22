@@ -9,6 +9,7 @@ import {
   Round,
   Question,
   ScoreEntry,
+  GamePhase,
 } from "../models/index.js";
 
 import { GameStateManager } from "./StateManager.js";
@@ -172,7 +173,12 @@ export class GameEngine extends EventEmitter {
         phase: "role-assignment",
       });
 
-      this.stateManager.startNewRound(topic);
+      const guessList: Topic[] = this.topicManager.getGuessList(
+        topic,
+        this.state.selectedCategory ?? "animals"
+      );
+
+      this.stateManager.startNewRound(topic, guessList);
 
       this.emit(GameEvent.ROUND_STARTED, this.stateManager.getCurrentRound());
       this.emit(GameEvent.PHASE_CHANGED, this.state.phase);
@@ -290,12 +296,15 @@ export class GameEngine extends EventEmitter {
       if (!currentRound) throw new Error("No active round found");
 
       const { players, votes, spy } = currentRound;
-      
+
       // Calculate insider scores
       const scores: ScoreEntry[] = players.map((player) => {
         let score = 0;
-        if (player.role === "Insider" && 
-            votes.find((vote: VoteResult) => vote.voterID === player.id)?.suspectID === spy.id) {
+        if (
+          player.role === "Insider" &&
+          votes.find((vote: VoteResult) => vote.voterID === player.id)
+            ?.suspectID === spy.id
+        ) {
           score += 10;
         }
         return { playerID: player.id, score };
@@ -312,7 +321,20 @@ export class GameEngine extends EventEmitter {
     }
   }
 
-  
+  public startGuessTopic(): void {
+    try {
+      if (this.stateManager.state.phase !== "show-spy") {
+        throw Error(ERRORS.INVALID_PHASE);
+      }
+
+      this.stateManager.updateState({ phase: "guess-topic" });
+      this.emit(GameEvent.PHASE_CHANGED, this.stateManager.state.phase);
+    } catch (error) {
+      console.log(`Error starting guess topic phase: ${error}`);
+      this.emit(GameEvent.ERROR, error);
+    }
+  }
+
   public guessTopic(topicID: string, playerID: string) {
     try {
       if (this.stateManager.state.phase != "guess-topic")
@@ -325,11 +347,15 @@ export class GameEngine extends EventEmitter {
       currentRound.guessedTopic = this.topicManager.getTopic(topicID);
 
       // Calculate spy score
-      const spyGuessedCorrectly = currentRound.guessedTopic?.id === currentRound.topic.id;
+      const spyGuessedCorrectly =
+        currentRound.guessedTopic?.id === currentRound.topic.id;
       const correctVotes = currentRound.votes.filter(
-        (vote: VoteResult) => vote.voterID !== currentRound.spy.id && vote.suspectID === currentRound.spy.id
+        (vote: VoteResult) =>
+          vote.voterID !== currentRound.spy.id &&
+          vote.suspectID === currentRound.spy.id
       );
-      const allInsidersGuessedCorrectly = correctVotes.length === currentRound.players.length - 1;
+      const allInsidersGuessedCorrectly =
+        correctVotes.length === currentRound.players.length - 1;
       const allInsidersGuessedWrong = correctVotes.length === 0;
 
       let spyScore = 0;
@@ -340,7 +366,9 @@ export class GameEngine extends EventEmitter {
       // Update spy score in current round scores
       const updatedScores = [...currentRound.scores];
       const spyScoreEntry = { playerID: currentRound.spy.id, score: spyScore };
-      const spyIndex = updatedScores.findIndex(s => s.playerID === currentRound.spy.id);
+      const spyIndex = updatedScores.findIndex(
+        (s) => s.playerID === currentRound.spy.id
+      );
       if (spyIndex >= 0) {
         updatedScores[spyIndex] = spyScoreEntry;
       } else {
@@ -351,14 +379,28 @@ export class GameEngine extends EventEmitter {
       // Update total scores
       this.stateManager.updateTotalScores([spyScoreEntry]);
 
-      this.emit(
-        GameEvent.ROUND_ENDED,
-        this.stateManager.state.rounds[
-          this.stateManager.state.rounds.length - 1
-        ]
-      );
+      this.emit(GameEvent.TOPIC_GUESSED, {
+        guessedTopic: this.getCurrentRound?.guessedTopic,
+        correctTopic: this.getCurrentRound?.topic
+      });
     } catch (error) {
       console.log(`Error on guess the topic: ${error}`);
+      this.emit(GameEvent.ERROR, error);
+    }
+  }
+
+
+  public endRound(): void {
+    try {
+      if (this.stateManager.state.phase === "lobby")
+        throw Error(ERRORS.INVALID_PHASE);
+
+      this.stateManager.endCurrentRound();
+
+      this.emit(GameEvent.PHASE_CHANGED, this.state.phase);
+      this.emit(GameEvent.ROUND_ENDED, "Round was ended");
+    }catch (error) {
+      console.log(`Error ending round: ${error}`);
       this.emit(GameEvent.ERROR, error);
     }
   }

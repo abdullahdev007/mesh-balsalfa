@@ -6,7 +6,6 @@ import {
   ScoreEntry,
   Topic,
   TopicCategory,
-  VoteResult,
 } from "../models";
 
 export class GameStateManager {
@@ -47,16 +46,31 @@ export class GameStateManager {
       (player: Player) => player.id !== playerID
     ));
 
-  public startNewRound(topic: Topic): void {
+  public startNewRound(topic: Topic,guessList: Topic[]): void {
     this.state.rounds.push({
       roundNumber: this.state.currentRound,
       topic: topic,
       topicCategory: topic.category,
-      players: this.state.players,
+      // Create a deep copy of players to preserve their data
+      players: this.state.players.map(player => ({
+        ...player,
+        username: player.username,
+        id: player.id,
+        role: player.role,
+        score: player.score
+      })),
+      guessList: guessList,
       votes: [],
       scores: [],
       guessedTopic: null,
-      spy: this.getSpyPlayer()!,
+      // Create a deep copy of spy player
+      spy: {
+        ...this.getSpyPlayer()!,
+        username: this.getSpyPlayer()!.username,
+        id: this.getSpyPlayer()!.id,
+        role: this.getSpyPlayer()!.role,
+        score: this.getSpyPlayer()!.score
+      },
     });
   }
 

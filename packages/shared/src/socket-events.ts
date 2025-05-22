@@ -49,6 +49,7 @@ export const ClientEvents = {
   ASK_FREE_QUESTION: "round:ask_free_question", // user need to ask free question
   FREE_QUESTION_ASK_DONE: "round:free_question_ask_done", // free question ask done
   START_GUESS_TOPIC: "round:start_guess_topic", // start guess topic
+  END_ROUND: "round:end", // end round
   
   ADD_TOPIC: "topics:add",
   REMOVE_TOPIC: "topics:remove",

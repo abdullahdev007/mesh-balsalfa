@@ -7,6 +7,7 @@ import {
   ServerErrorType,
   SERVER_ERROR_MESSAGES,
   SERVER_MESSAGES,
+  RoomInfo,
 } from "@repo/shared/dist/index.js";
 import { GameEvent, GamePhase, Question, Round } from "@repo/game-core";
 
@@ -81,11 +82,12 @@ export const handleRoundEvents = (
       room.gameEngine.removeAllListeners();
 
       room.gameEngine.on(GameEvent.PHASE_CHANGED, (phase: GamePhase) => {
-        io.to(room.id).emit(ServerEvents.PHASE_CHANGED, {phase, currentRound: room.gameEngine.getCurrentRound});
-      });
-
-      room.gameEngine.on(GameEvent.ROUND_ENDED, (round: Round) => {
-        io.to(room.id).emit(ServerEvents.ROUND_ENDED, round);
+        console.log("phase changed :", phase);
+        
+        io.to(room.id).emit(ServerEvents.PHASE_CHANGED, {
+          phase,
+          currentRound: room.gameEngine.getCurrentRound,
+        });
       });
 
       io.to(room.id).emit(
@@ -255,8 +257,6 @@ export const handleRoundEvents = (
     ClientEvents.FREE_QUESTION_ASK_DONE,
     (nextAskerID: string, callback) => {
       try {
-        console.log(nextAskerID, "free question ask done");
-
         const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
         const room: Room = player.room!;
 
@@ -327,9 +327,9 @@ export const handleRoundEvents = (
             message: SERVER_ERROR_MESSAGES[ServerErrorType.CANNOT_VOTE],
           },
         });
-      
+
       console.log(room.gameEngine.state.phase);
-      
+
       room.gameEngine.castVote(player.id, suspectID);
 
       const roundManager = room.roundManager;
@@ -354,11 +354,12 @@ export const handleRoundEvents = (
           onExpire: () => {
             // Get players who haven't voted yet
             const votedPlayers = roundManager.getWaitingList(timerId);
-            const nonVotedPlayers = Array.from(room.players.values())
-              .filter(player => !votedPlayers.has(player.id));
+            const nonVotedPlayers = Array.from(room.players.values()).filter(
+              (player) => !votedPlayers.has(player.id)
+            );
 
             // Make non-voted players vote for themselves
-            nonVotedPlayers.forEach(player => {
+            nonVotedPlayers.forEach((player) => {
               room.gameEngine.castVote(player.id, player.id);
             });
 
@@ -374,7 +375,6 @@ export const handleRoundEvents = (
         const message = SERVER_MESSAGES.VOTING_COUNTDOWN_COMPLETED;
         io.to(room.id).emit(ServerEvents.VOTING_COUNTDOWN_COMPLETE, message);
       }
-
     } catch (error) {
       console.log(`Error on CAST_VOTE event : ${error}`);
       return callback({
@@ -386,70 +386,132 @@ export const handleRoundEvents = (
     }
   });
 
-  socket.on(ClientEvents.GUESS_TOPIC, (topicID: string) => {
+  socket.on(ClientEvents.START_GUESS_TOPIC, (callback) => {
     try {
       const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
       const room: Room = player.room!;
 
-      if (!player || !room) {
-        io.to(socket.id).emit(ServerEvents.ERROR, {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+      if (!player || !room)
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+          },
         });
-        return;
-      }
 
-      if (
-        room.gameEngine.getCurrentRound?.spy.id !== player.id &&
-        room.gameEngine.state.phase !== "guess-topic"
-      ) {
-        io.to(socket.id).emit(ServerEvents.ERROR, {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.CANNOT_GUESS_TOPIC],
+      if (room.gameEngine.state.phase !== "show-spy")
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.INVALID_ROUND_PHASE],
+          },
         });
-        return;
-      }
 
-      room.gameEngine.guessTopic(topicID, player.id);
-      io.to(room.id).emit(ServerEvents.TOPIC_GUESSED, {});
+      room.gameEngine.startGuessTopic();
+      return callback({ success: true });
     } catch (error) {
-      console.log(`Error on GUESS_TOPIC event: ${error}`);
-      io.to(socket.id).emit(ServerEvents.ERROR, {
-        message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+      console.log(`Error on START_GUESS_TOPIC event : ${error}`);
+      return callback({
+        success: false,
+        error: {
+          message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+        },
       });
     }
   });
 
-socket.on(ClientEvents.START_GUESS_TOPIC, (callback) => {
-  try {
-    const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
-    const room: Room = player.room!;
+  socket.on(ClientEvents.GUESS_TOPIC, (topicID: string, callback) => {
+    try {
+      const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
+      const room: Room = player.room!;
 
-    if (!player || !room)
+      if (!player || !room)
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+          },
+        });
+
+      if (
+        room.gameEngine.getCurrentRound?.spy.id !== player.id ||
+        room.gameEngine.state.phase !== "guess-topic"
+      ) {
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.CANNOT_GUESS_TOPIC],
+          },
+        });
+      }
+
+      room.gameEngine.guessTopic(topicID, player.id);
+      io.to(room.id).emit(
+        ServerEvents.TOPIC_GUESSED,
+        room.gameEngine.getCurrentRound
+      );
+    } catch (error) {
+      console.log(`Error on GUESS_TOPIC event : ${error}`);
       return callback({
         success: false,
         error: {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+          message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
         },
       });
+    }
+  });
 
-    if (room.gameEngine.state.phase !== "show-spy")
+  socket.on(ClientEvents.END_ROUND, (callback) => {
+    try {
+      console.log("end round in room");
+
+      const player: Player = gameManager.getPlayerBySocketId(socket.id)!;
+      const room: Room = player.room!;
+
+      if (!player || !room)
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+          },
+        });
+
+      if (room.gameEngine.state.phase !== "guess-topic")
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.INVALID_ROUND_PHASE],
+          },
+        });
+
+      if (player.id !== room.admin.id)
+        return callback({
+          success: false,
+          error: {
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.NOT_ADMIN],
+          },
+        });
+
+      room.gameEngine.endRound();
+
+      const roomInfo: RoomInfo = {
+        id: room.id,
+        adminID: room.admin.id,
+        players: room.gameEngine.state.players,
+        topics: room.gameEngine.getTopics(),
+        rounds: room.gameEngine.state.rounds,
+      };
+
+      io.to(room.id).emit(ServerEvents.ROUND_ENDED, roomInfo);
+      return callback({ success: true });
+    } catch (error) {
+      console.log(`Error on END_ROUND event : ${error}`);
       return callback({
         success: false,
         error: {
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.INVALID_ROUND_PHASE],
+          message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
         },
       });
-
-    room.gameEngine.emit(GameEvent.PHASE_CHANGED, "guess-topic");
-
-    return callback({ success: true });
-  } catch (error) {
-    console.log(`Error on START_GUESS_TOPIC event : ${error}`);
-    return callback({
-      success: false,
-      error: {
-        message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
-      },
-    });
-  }
-});
+    }
+  });
 };

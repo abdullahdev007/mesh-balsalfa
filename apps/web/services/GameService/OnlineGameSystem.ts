@@ -17,12 +17,14 @@ export const OnlineEngineEvents = {
   TOPICS_UPDATED: "topics:updated",
   TOPIC_CATEGORY_UPDATED: "topic_category:updated",
   PLAYERS_UPDATED: "players:updated",
+  ROUNDS_UPDATED: "rounds:updated",
   ROUND_STARTED: "round:started",
   PHASE_CHANGED: "phase:changed",
   ROUND_ENDED: "round:ended",
   NEW_QUESTION: "round:new_question",
   FREE_QUESTION_ASKED: "round:free_question",
   FREE_QUESTION_ASK_DONE: "round:free_question_done",
+  TOPIC_GUESSED: "round:topic_guessed",
 };
 
 export class OnlineGameSystem {
@@ -42,6 +44,7 @@ export class OnlineGameSystem {
   public selectedCategory: TopicCategory = "animals";
   public roomID: string | null = null;
   public players: Player[] = [];
+  public rounds: Round[] = [];
   public isAdmin: boolean = false;
 
   public currentRound: Round | null = null;
@@ -110,12 +113,11 @@ export class OnlineGameSystem {
       toast.dismiss(OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID);
       toast.dismiss(OnlineGameSystem.VOTING_WAITING_TOAST_ID);
 
-      this.currentRound = null;
-
       this.router.push("/lobby");
 
       this.currentRound = null;
       this.currentPhase = "lobby";
+
     });
 
     this.socket.on(
@@ -136,6 +138,7 @@ export class OnlineGameSystem {
 
     this.socket.on(ServerEvents.ROUND_STARTED, (round: Round) => {
       this.currentRound = round;
+
       this.emit(OnlineEngineEvents.ROUND_STARTED, round);
     });
 
@@ -154,24 +157,36 @@ export class OnlineGameSystem {
       }
     );
 
-    this.socket.on(ServerEvents.ROUND_ENDED, (round: Round) => {
-      this.currentRound = round;
+    this.socket.on(ServerEvents.ROUND_ENDED, (roomInfo: RoomInfo) => {
+      this.currentRound = null;
       this.currentPhase = "lobby";
-      this.emit(OnlineEngineEvents.ROUND_ENDED, round);
-    });
-
-    this.socket.on(ServerEvents.PHASE_CHANGED, (response: {phase: GamePhase, currentRound: Round}) => {
-
-      const { phase, currentRound } = response;
-
-      if (phase === "show-spy") toast.dismiss(OnlineGameSystem.VOTING_WAITING_TOAST_ID);
-      else if (phase === "questions-phase") toast.dismiss(OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID);
       
-      this.currentPhase = phase;
-      this.currentRound = currentRound;
-
-      this.emit(OnlineEngineEvents.PHASE_CHANGED, phase);
+      this.emit(OnlineEngineEvents.ROUND_ENDED, {});
+      
+      this.topics = roomInfo.topics || [];
+      this.roomID = roomInfo.id;
+      this.players = roomInfo.players;
+      this.rounds = roomInfo.rounds;
+      this.emit(OnlineEngineEvents.TOPICS_UPDATED, this.topics);
+      this.emit(OnlineEngineEvents.PLAYERS_UPDATED, roomInfo.players);
     });
+
+    this.socket.on(
+      ServerEvents.PHASE_CHANGED,
+      (response: { phase: GamePhase; currentRound: Round }) => {
+        const { phase, currentRound } = response;
+        
+        if (phase === "show-spy")
+          toast.dismiss(OnlineGameSystem.VOTING_WAITING_TOAST_ID);
+        else if (phase === "questions-phase")
+          toast.dismiss(OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID);
+
+        this.currentPhase = phase;
+        this.currentRound = currentRound;
+
+        this.emit(OnlineEngineEvents.PHASE_CHANGED, phase);
+      }
+    );
 
     this.socket.on(
       ServerEvents.ROLE_ASSIGN_COUNTDOWN_STARTED,
@@ -187,9 +202,7 @@ export class OnlineGameSystem {
     this.socket.on(
       ServerEvents.ROLE_ASSIGN_COUNTDOWN_COMPLETE,
       (message: string) => {
-        toast.success(message, {
-          id: OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID,
-        });
+        toast.dismiss(OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID);
         this.waitingForRoleAssignment = false;
       }
     );
@@ -205,9 +218,7 @@ export class OnlineGameSystem {
     this.socket.on(
       ServerEvents.VOTING_COUNTDOWN_COMPLETE,
       (message: string) => {
-        toast.success(message, {
-          id: OnlineGameSystem.VOTING_WAITING_TOAST_ID,
-        });
+        toast.dismiss(OnlineGameSystem.VOTING_WAITING_TOAST_ID);
         this.waitingForVoting = false;
       }
     );
@@ -220,6 +231,14 @@ export class OnlineGameSystem {
         this.router.push("/");
       }
     );
+
+    this.socket.on(ServerEvents.TOPIC_GUESSED, (round: Round) => {
+      this.currentRound = round;
+      this.emit(OnlineEngineEvents.TOPIC_GUESSED, {
+        guessedTopic: round.guessedTopic,
+        correctTopic: round.topic
+      });
+    });
   }
 
   // Category management
@@ -264,8 +283,10 @@ export class OnlineGameSystem {
           this.roomID = response.roomInfo.id;
           this.playerID = response.playerID;
           this.players = response.roomInfo.players;
+          this.rounds = response.roomInfo.rounds;
           this.currentPhase = "lobby";
           this.emit(OnlineEngineEvents.TOPICS_UPDATED, this.topics);
+          this.emit(OnlineEngineEvents.ROUNDS_UPDATED, this.players);
           this.emit(OnlineEngineEvents.PLAYERS_UPDATED, this.players);
 
           // Use Next.js router for navigation
@@ -466,6 +487,34 @@ export class OnlineGameSystem {
     });
   }
 
+  async guessTopic(topicID: string) {
+    return new Promise((resolve) => {
+      this.socket.emit(ClientEvents.GUESS_TOPIC, topicID, (response: any) => {
+        if (!response.success) {
+          toast.error(
+            response.error?.message || "فشل في ارسال توقعك ل السالفة"
+          );
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  }
+
+  async endRound() {
+    return new Promise((resolve) => {
+      this.socket.emit(ClientEvents.END_ROUND, (response: any) => {
+        if (!response.success) {
+          toast.error(response.error?.message || "فشل في انهاء الجولة");
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  }
+
   // Event system
 
   on(event: string, callback: Function) {
@@ -506,6 +555,7 @@ export class OnlineGameSystem {
     this.topics = [];
     this.roomID = null;
     this.players = [];
+    this.rounds = [];
     this.isAdmin = false;
     this.selectedCategory = "animals";
     this.currentRound = null;

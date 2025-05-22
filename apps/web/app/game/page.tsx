@@ -14,8 +14,8 @@ import type { GameScreenType } from "@/components/gameFlowScreen/GameFlowScreen"
 export default function GamePage() {
   const router = useRouter();
   const { mode, offline, online } = useGame();
-  const { theme } = useTheme();
-  const [currentScreen, setCurrentScreen] = useState<GameScreenType>("role-assignment");
+  const [currentScreen, setCurrentScreen] =
+    useState<GameScreenType>("role-assignment");
 
   useEffect(() => {
     if (mode === null) {
@@ -24,10 +24,13 @@ export default function GamePage() {
   }, [router, mode]);
 
   useEffect(() => {
-    const handlePhaseChange = (phase: GamePhase) => {
-     setCurrentScreen(phase);
-    };
+    const handlePhaseChange = (phase: GamePhase) => {      
+      if (phase === "lobby" && window.location.pathname !== "/lobby") {
+        return router.push("/lobby");
+      }
 
+      setCurrentScreen(phase);
+    };
 
     if (mode === "offline") {
       offline.on(GameEvent.PHASE_CHANGED, handlePhaseChange);
@@ -46,16 +49,6 @@ export default function GamePage() {
 
   return (
     <div className={styles.gamePage}>
-      <div className={styles.logoHolder}>
-        <Image
-          src={`/images/${theme === "dark" ? "light-logo.png" : "dark-logo.png"}`}
-          alt="game logo"
-          fill
-          priority
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
-      </div>
-
       <div className={styles.gameContainer}>
         <GameFlowScreen currentScreen={currentScreen} />
       </div>

@@ -15,6 +15,7 @@ export interface Round {
   roundNumber: number;
   topic: Topic;
   topicCategory: TopicCategory;
+  guessList: Topic[];
   spy: Player;
   players: Player[];
   votes: VoteResult[];

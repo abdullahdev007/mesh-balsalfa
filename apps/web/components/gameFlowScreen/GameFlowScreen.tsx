@@ -21,8 +21,10 @@ interface GameFlowScreenProps {
 const GameFlowScreen: React.FC<GameFlowScreenProps> = ({ currentScreen }) => {
   const { theme } = useTheme();
 
+
   const renderScreen = () => {
     switch (currentScreen) {
+
       case "role-assignment":
         return <RoleAssignment />;
       case "questions-phase":

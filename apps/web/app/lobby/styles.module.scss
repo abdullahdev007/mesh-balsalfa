@@ -180,36 +180,9 @@
         flex-direction: column;
         padding: 0 20px;
         gap: 25px;
-
         height: 100%;
         flex: 2;
-
         overflow-y: auto;
-      }
-
-      .round {
-        background-color: var(--reverse-theme-color);
-        color: var(--theme-color);
-        border-radius: 25px;
-
-        text-align: right;
-        direction: rtl;
-
-        padding: 25px 25px;
-
-        font-size: 0.6rem;
-        border: 2px dashed $primary-color;
-
-        .votes {
-          display: flex;
-          gap: 10px;
-
-          div {
-            display: flex;
-            flex-direction: column;
-            font-size: 0.8em;
-          }
-        }
       }
     }
   }
@@ -289,10 +262,20 @@
       justify-content: center;
       align-items: center;
 
+      &.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
       &.startRound {
         border-radius: 5px 5px 0 0;
         background-color: color.adjust($sucess-color, $lightness: 25%);
         transition: 0.3s ease;
+
+        &:not(.disabled):hover {
+          background-color: color.adjust($sucess-color, $lightness: 15%);
+        }
       }
 
       &.leaveGame {
@@ -303,14 +286,8 @@
         &.singleButton {
           border-radius: 5px;
         }
-      }
 
-      &:hover {
-        &.startRound {
-          background-color: color.adjust($sucess-color, $lightness: 15%);
-        }
-
-        &.leaveGame {
+        &:not(.disabled):hover {
           background-color: color.adjust($danger-color, $lightness: 15%);
         }
       }
