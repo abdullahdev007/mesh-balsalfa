@@ -15,6 +15,7 @@
     "@repo/shared": "^1.0.0",
     "framer-motion": "^12.10.1",
     "next": "^15.1.6",
+    "next-pwa": "^5.6.0",
     "next-transpile-modules": "^10.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

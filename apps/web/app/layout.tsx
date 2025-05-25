@@ -11,11 +11,18 @@ import Footer from "@/components/footer/footer";
 import ToastProvider from "@/components/toastProvider/ToastProvider";
 
 import { GameProvider } from "@/context/GameContext";
-import Head from "next/head";
 
 export const metadata: Metadata = {
   title: "مش بلسالفة",
-  description: "",
+  description: 'لعبة "مش بلسالفة" هي لعبة جماعية ذكية وممتعة تكشف فيها من بينكم ما يعرف السالفة! تدعم حتى 12 لاعبًا، مع أوضاع أونلاين وأوفلاين، وميزة تعديل السوالف. اكتشف، خمن، واستمتع بالضحك والتحدي!',
+  manifest: '/manifest.json',
+  themeColor: '#EF8354',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    shortcut: '/icons/icon-192x192.png',
+    apple: '/icons/icon-192x192.png'
+  }
 };
 
 export default function RootLayout({
@@ -29,9 +36,7 @@ export default function RootLayout({
 
   return (
     <html lang="ar">
-      <Head>
-        <link rel="icon" href="/images/dark-logo.png"  type="image/png" />
-      </Head>
+
       <body>
         <GameProvider>
           <ThemeProvider>

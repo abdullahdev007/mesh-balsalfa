@@ -1,4 +1,11 @@
 import path from 'path';
+import nextPWA from 'next-pwa';
+
+const withPWA = nextPWA({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+});
 
 const nextConfig = {
   sassOptions: {
@@ -7,4 +14,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);
