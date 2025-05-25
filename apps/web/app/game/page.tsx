@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
-import { useTheme } from "@/context/ThemeContext";
-import styles from "./page.module.scss";
+import styles from "./styles.module.scss";
 import GameFlowScreen from "@/components/gameFlowScreen/GameFlowScreen";
 import { useGame } from "@/context/GameContext";
 import { useRouter } from "next/navigation";
@@ -22,6 +20,7 @@ export default function GamePage() {
       router.push("/");
     }
   }, [router, mode]);
+  
 
   useEffect(() => {
     const handlePhaseChange = (phase: GamePhase) => {      

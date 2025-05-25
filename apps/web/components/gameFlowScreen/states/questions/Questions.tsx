@@ -27,7 +27,7 @@ const Questions: FC = () => {
   const toastIdRef = useRef<string | undefined>(undefined);
 
   const { timeLeft } = useCountdown({
-    duration: mode === "online" ? 5 : 0,
+    duration: mode === "online" ? 7 : 0,
     onComplete: () => {
       if (mode === "online") {
         toast.dismiss(toastIdRef.current);
@@ -86,7 +86,7 @@ const Questions: FC = () => {
       <div className={mainStyles.description}>
         <TypewriterText
           text={description}
-          speed={1}
+          speed={40}
           isArabic={true}
           onComplete={() => setIsTypewriterComplete(true)}
         />

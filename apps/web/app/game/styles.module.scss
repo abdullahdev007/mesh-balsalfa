@@ -3,13 +3,14 @@
 .gamePage {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  flex: 1;
+  justify-content: center;
 
   height: 100%;
   background-color: var(--background-color);
   color: var(--text-color);
 
-  padding: 0 150px;
+  padding: 0 3.5rem;
 
   @media screen and (max-width: 900px) {
     padding: 0 50px;
@@ -24,10 +25,12 @@
   width: 100%;
   height: 100%;
 
-  border-radius: 75px 25px 75px 25px;
+  border-radius: 175px 50px 175px 50px;
   border: 10px solid var(--reverse-theme-color);
   border-width: 40px 25px 40px 25px;
+  
   padding: 20px 20px;
+  min-height: 600px;
 
   box-shadow: 0 0 30px color.adjust($primary-color, $alpha: 0.6);
 
@@ -42,10 +45,17 @@
   @media screen and (max-width: 600px) {
     border-width: 25px 15px 25px 15px;
     margin: 50px 0;
+    border-radius: 75px 25px 75px 25px;
+    padding: 10px 10px;
   }
 
   @media screen and (max-width: 300px) {
-    border-width: 15px 5px 15px 5px;
+    border-width: 15px;
+    border-radius:  10px ;
+
+    padding: 0;
+
+
     margin: 50px 0;
   }
 }

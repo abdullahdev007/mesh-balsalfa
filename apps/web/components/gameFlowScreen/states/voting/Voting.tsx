@@ -60,7 +60,7 @@ const Voting: React.FC = () => {
                 )
               : OFFLINE_MESSAGE(offline.state.players[currentIndex]?.username!)
           }
-          speed={10}
+          speed={40}
           isArabic={true}
           onComplete={() => setIsTypewriterComplete(true)}
         />

@@ -159,7 +159,7 @@ const FreeQuestions: FC = () => {
       <div className={mainStyles.description}>
         <TypewriterText
           text={description}
-          speed={10}
+          speed={40}
           isArabic={true}
           onComplete={() => setIsTypewriterComplete(true)}
         />

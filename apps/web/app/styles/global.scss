@@ -1,3 +1,4 @@
+@use "sass:color";
 * {
   margin: 0;
   padding: 0;
@@ -5,7 +6,7 @@
 }
 
 :root {
-  background-color: $light-color;
+  background-color: color.adjust($light-color, $lightness:  -15%);
   font-family: "Rubik", sans-serif;
   color: $dark-color;
 
@@ -13,15 +14,19 @@
   --theme-color: #{$light-color};
 
   font-size: 24px;
-
+  
   &.dark {
     --theme-color: #{$dark-color};
     --reverse-theme-color: #{$light-color};
-    background-color: $dark-color;
+    background-color:  color.adjust($dark-color, $lightness:  -5%);
     color: $light-color;
 
     button {
       color: $light-color;
+    }
+
+    body {
+      animation: innerShadowDark 3s ease-in-out infinite alternate;
     }
   }
 
@@ -29,10 +34,32 @@
     color: $dark-color;
   }
 
+
   body {
     padding: 0 50px;
     display: flex;
+    min-height: 100vh;
     flex-direction: column;
+    
+    animation: innerShadowLight 3s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes innerShadowLight {
+  from {
+    box-shadow: inset 0 0 250px rgba($dark-color, 0.1);
+  }
+  to {
+    box-shadow: inset 0 0 300px rgba($dark-color, 0.3);
+  }
+}
+
+@keyframes innerShadowDark {
+  from {
+    box-shadow: inset 0 0 50px rgba($light-color, 0.1);
+  }
+  to {
+    box-shadow: inset 0 0 100px rgba($light-color, 0.3);
   }
 }
 
@@ -40,14 +67,11 @@ ul {
   list-style: none;
 }
 
-html,
-body,
-#__next {
-  height: 100vh;
-}
 
 .main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 // Scrollbar style

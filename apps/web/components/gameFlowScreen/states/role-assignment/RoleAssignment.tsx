@@ -35,7 +35,7 @@ const RoleAssignment: React.FC = () => {
                     online?.currentRound?.topic?.name || "No Topic"
                   )
             }
-            speed={1}
+            speed={40}
             isArabic={true}
             onComplete={() => setIsTypewriterComplete(true)}
           />
@@ -85,7 +85,7 @@ const RoleAssignment: React.FC = () => {
         <TypewriterText
           key={`${currentPlayerIndex}-${showingRole}`} 
           text={getCurrentText()}
-          speed={1}
+          speed={40}
           isArabic={true}
           onComplete={() => setIsTypewriterComplete(true)}
         />

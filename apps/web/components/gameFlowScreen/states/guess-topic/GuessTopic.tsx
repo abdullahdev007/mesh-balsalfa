@@ -3,10 +3,9 @@ import mainStyles from "../../styles.module.scss";
 import TypewriterText from "@/components/Typewriter/Typewriter";
 import { useGame } from "@/context/GameContext";
 import { useTheme } from "@/context/ThemeContext";
-import { ServerEvents } from "@repo/shared";
 import styles from "./styles.module.scss";
 import { OnlineEngineEvents } from "@/services/GameService";
-import { GameEvent, Topic, TopicManager } from "@repo/game-core";
+import { GameEvent, Topic } from "@repo/game-core";
 import { useCountdown } from "@/hooks/useCountdown";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -27,7 +26,7 @@ const GuessTopic: React.FC = () => {
   const router = useRouter();
 
   const { timeLeft, start: startTimer } = useCountdown({
-    duration: 5,
+    duration: 7,
     autoStart: false,
     onComplete: () => {
       if (mode === "offline") offline.endRound();
@@ -132,6 +131,7 @@ const GuessTopic: React.FC = () => {
       <TypewriterText
         text={description()}
         isArabic={true}
+        speed={40}
         className={styles.description}
         onComplete={() => setIsFirstTypewriterComplete(true)}
       />

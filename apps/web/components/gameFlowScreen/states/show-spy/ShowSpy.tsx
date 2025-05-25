@@ -13,7 +13,7 @@ const ShowSpy: React.FC = () => {
   const { online, offline, mode } = useGame();
 
   const { timeLeft, start: startTimer } = useCountdown({
-    duration: 5,
+    duration: 7,
     autoStart: false,
     onComplete: () => {
       if (mode === "online") {
@@ -100,14 +100,14 @@ const ShowSpy: React.FC = () => {
       <div className={mainStyles.description}>
         <TypewriterText
           text={`الي برا السالفة هو ${spy.username} !!`}
-          speed={50}
+          speed={40}
           isArabic={true}
           onComplete={() => setIsFirstTypewriterComplete(true)}
         />
         {isFirstTypewriterComplete && (
             <TypewriterText
               text={`${correctVoteNumbers} اشخاص صوت صح`}
-              speed={50}
+              speed={40}
               isArabic={true}
               onComplete={() => setIsSecondTypewriterComplete(true)}
             />

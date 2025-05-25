@@ -13,7 +13,6 @@ import ToastProvider from "@/components/toastProvider/ToastProvider";
 import { GameProvider } from "@/context/GameContext";
 import Head from "next/head";
 
-
 export const metadata: Metadata = {
   title: "مش بلسالفة",
   description: "",
@@ -24,6 +23,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+
+
+
   return (
     <html lang="ar">
       <Head>
