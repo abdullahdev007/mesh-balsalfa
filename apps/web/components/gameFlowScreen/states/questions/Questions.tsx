@@ -20,7 +20,7 @@ const Questions: FC = () => {
   const [isTypewriterComplete, setIsTypewriterComplete] = useState(false);
   const { online, offline, mode } = useGame();
   const [description, setDescription] = useState<string>(
-    mode === "online" ? INITIAL_ONLINE_MESSAGE : INITIAL_OFFLINE_MESSAGE
+    mode === "online" ? INITIAL_ONLINE_MESSAGE : INITIAL_OFFLINE_MESSAGE,
   );
   const [askerID, setAskerID] = useState<string | null>(null);
 
@@ -33,7 +33,7 @@ const Questions: FC = () => {
         toast.dismiss(toastIdRef.current);
         if (online.isAdmin) nextQuestion();
       }
-    }
+    },
   });
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const Questions: FC = () => {
         setAskerID(question.asker.id);
 
         setDescription(
-          QUESTION_MESSAGE(question.asker.username, question.target.username)
+          QUESTION_MESSAGE(question.asker.username, question.target.username),
         );
       }
     };

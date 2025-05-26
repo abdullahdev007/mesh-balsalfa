@@ -1,26 +1,23 @@
 {
   "name": "@repo/shared",
   "version": "1.0.0",
-  "description": "",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "dev": "tsc -w"
   },
+  "dependencies": {
+    "@repo/game-core": "^1.0.0"
+  },
   "devDependencies": {
     "@repo/eslint-config": "*",
-    "@repo/game-core": "^1.0.0",
     "@repo/typescript-config": "*",
     "@types/node": "^18.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.0.0",
-    "typescript": "^4.0.0"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^9.19.0",
+    "typescript": "5.7.3"
+  }
 }

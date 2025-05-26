@@ -12,7 +12,7 @@ export class RoundManager extends EventEmitter {
   // Maps to track timers and player waiting lists based on timer ID
   private countdowns: Map<TimerID, NodeJS.Timeout> = new Map();
   private endTimes: Map<TimerID, number> = new Map();
-  private waitingLists: Map<TimerID, Set<string>> = new Map();  // Waiting lists based on timer ID
+  private waitingLists: Map<TimerID, Set<string>> = new Map(); // Waiting lists based on timer ID
 
   constructor(public room: Room) {
     super();
@@ -29,7 +29,9 @@ export class RoundManager extends EventEmitter {
     if (waitingList.has(playerId)) return;
 
     waitingList.add(playerId);
-    console.log(`[RoundManager] Player ${playerId} added to waiting list for timer '${timerId}'.`);
+    console.log(
+      `[RoundManager] Player ${playerId} added to waiting list for timer '${timerId}'.`,
+    );
   }
 
   // Check if player is in the waiting list for a specific timer ID
@@ -43,7 +45,9 @@ export class RoundManager extends EventEmitter {
     const waitingList = this.waitingLists.get(timerId);
     if (waitingList) {
       waitingList.clear();
-      console.log(`[RoundManager] Waiting list for timer '${timerId}' cleared.`);
+      console.log(
+        `[RoundManager] Waiting list for timer '${timerId}' cleared.`,
+      );
     }
   }
 
@@ -58,13 +62,15 @@ export class RoundManager extends EventEmitter {
       config.onExpire();
       this.countdowns.delete(id);
       this.endTimes.delete(id);
-      this.clearWaitingList(id);  // Clear waiting list when the timer expires
+      this.clearWaitingList(id); // Clear waiting list when the timer expires
     }, config.duration);
 
     this.countdowns.set(id, timeout);
     this.endTimes.set(id, Date.now() + config.duration);
 
-    console.log(`[RoundManager] Timer '${id}' started for ${config.duration}ms`);
+    console.log(
+      `[RoundManager] Timer '${id}' started for ${config.duration}ms`,
+    );
   }
 
   // Cancel a countdown by its ID
@@ -75,7 +81,7 @@ export class RoundManager extends EventEmitter {
     clearTimeout(timer);
     this.countdowns.delete(id);
     this.endTimes.delete(id);
-    this.clearWaitingList(id);  // Clear waiting list when timer is cancelled
+    this.clearWaitingList(id); // Clear waiting list when timer is cancelled
     console.log(`[RoundManager] Timer '${id}' cancelled.`);
   }
 

@@ -1,12 +1,11 @@
 import { Player, Role } from "../models/Player.js";
 
 export class RoleSystem {
-  
   assignRoles(players: Player[]): Player[] {
     const roles = this.generateRoles(players.length);
     return players.map((player, index) => ({
       ...player,
-      role: roles[index]
+      role: roles[index],
     }));
   }
 

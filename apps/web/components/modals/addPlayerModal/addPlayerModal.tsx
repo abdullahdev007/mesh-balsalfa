@@ -25,7 +25,7 @@ function AddPlayerModal({ isOpen, onClose }: AddPlayerModalProps) {
         toast.error("لا يمكن إضافة المزيد من اللاعبين، الحد الأقصى هو 12 لاعب");
         return;
       }
-      
+
       offline.addPlayer({
         username: username,
         id: generateUserId(),

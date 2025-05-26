@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useTheme } from '@/context/ThemeContext';
-import styles from './styles.module.scss';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { FaArrowRight } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { useTheme } from "@/context/ThemeContext";
+import styles from "./styles.module.scss";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { FaArrowRight } from "react-icons/fa";
 
 const SLOGANS = [
   "كلنا نعرف السالفة… تقريبًا.",
@@ -27,7 +27,7 @@ const SLOGANS = [
   "مرحبًا بك في عالم الكذب الاجتماعي!",
   "برا السالفة؟ حظك اليوم يحدد مصيرك.",
   "في مش بلسالفة… الذكي ما يكشف نفسه.",
-  "نكتشفك من نظراتك، لا تتوتر."
+  "نكتشفك من نظراتك، لا تتوتر.",
 ];
 
 const AboutPage = () => {
@@ -40,12 +40,10 @@ const AboutPage = () => {
     const interval = setInterval(() => {
       setIsFading(true);
       setTimeout(() => {
-        setCurrentSloganIndex((prevIndex) => 
-          (prevIndex + 1) % SLOGANS.length
-        );
+        setCurrentSloganIndex((prevIndex) => (prevIndex + 1) % SLOGANS.length);
         setIsFading(false);
-      }, 1000); 
-    }, 10000); 
+      }, 1000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
@@ -54,12 +52,12 @@ const AboutPage = () => {
     <div className={styles.container}>
       <header className={styles.header}>
         <h1>مش بلسالفة</h1>
-        <p className={`${styles.slogan} ${isFading ? styles.fade : ''}`}>
+        <p className={`${styles.slogan} ${isFading ? styles.fade : ""}`}>
           {SLOGANS[currentSloganIndex]}
         </p>
-        <button 
+        <button
           className={styles.backButton}
-          onClick={() => router.push('/')}
+          onClick={() => router.push("/")}
           type="button"
         >
           <FaArrowRight size="1.2em" />
@@ -72,7 +70,11 @@ const AboutPage = () => {
           <div className={styles.content}>
             <h2>هدف اللعبة</h2>
             <p>كشف من هو برا السالفة قبل أن يخدعكم... أو يخمنها قبلكم!</p>
-            <p>اللعبة تعتمد على الذكاء، الملاحظة، والتلاعب بالكلام. كل اللاعبين يعرفون "السالفة" ما عدا شخص واحد، والمطلوب اكتشاف من هو هذا الشخص قبل أن يكتشف هو السالفة من خلال أسئلتكم!</p>
+            <p>
+              اللعبة تعتمد على الذكاء، الملاحظة، والتلاعب بالكلام. كل اللاعبين
+              يعرفون "السالفة" ما عدا شخص واحد، والمطلوب اكتشاف من هو هذا الشخص
+              قبل أن يكتشف هو السالفة من خلال أسئلتكم!
+            </p>
           </div>
           <div className={styles.image}>
             <Image
@@ -88,7 +90,10 @@ const AboutPage = () => {
         <section className={styles.section}>
           <div className={styles.content}>
             <h2>عدد اللاعبين</h2>
-            <p>تتناسب اللعبة مع الجلسات العائلية، السهرات مع الأصدقاء، أو حتى اللعب عن بُعد.</p>
+            <p>
+              تتناسب اللعبة مع الجلسات العائلية، السهرات مع الأصدقاء، أو حتى
+              اللعب عن بُعد.
+            </p>
             <ul>
               <li>الحد الأدنى: 3 لاعبين</li>
               <li>الحد الأقصى: 12 لاعبًا</li>
@@ -136,10 +141,18 @@ const AboutPage = () => {
             <h2>طريقة اللعب</h2>
             <ul>
               <li>يدخل اللاعبون أسماءهم</li>
-              <li>التطبيق يختار سالفة ويعرضها على الجميع ما عدا واحد: "برا السالفة"</li>
+              <li>
+                التطبيق يختار سالفة ويعرضها على الجميع ما عدا واحد: "برا
+                السالفة"
+              </li>
               <li>كل لاعب يسأل سؤالًا ذكيًا ليختبر الآخرين</li>
-              <li>"برا السالفة" يجب أن يتصرف كأنه يعرف السالفة... بدون أن يُفضَح</li>
-              <li>بعد انتهاء الأسئلة، يصوّت الجميع على من يعتقدون أنه "برا السالفة"</li>
+              <li>
+                "برا السالفة" يجب أن يتصرف كأنه يعرف السالفة... بدون أن يُفضَح
+              </li>
+              <li>
+                بعد انتهاء الأسئلة، يصوّت الجميع على من يعتقدون أنه "برا
+                السالفة"
+              </li>
               <li>"برا السالفة" يحاول تخمين السالفة</li>
             </ul>
           </div>
@@ -160,7 +173,9 @@ const AboutPage = () => {
               <li>لا يجوز كشف السالفة مباشرة</li>
               <li>الأسئلة يجب أن تكون ذكية وغير واضحة جدًا</li>
               <li>لا يُسمح للاعب بالإفصاح عن كونه "برا السالفة"</li>
-              <li>في نهاية كل جولة، تُحتسب النقاط أو تُطبق العقوبات الترفيهية</li>
+              <li>
+                في نهاية كل جولة، تُحتسب النقاط أو تُطبق العقوبات الترفيهية
+              </li>
             </ul>
           </div>
           <div className={styles.image}>
@@ -197,13 +212,3 @@ const AboutPage = () => {
 };
 
 export default AboutPage;
-
-
-
-
-
-
-
-
-
-

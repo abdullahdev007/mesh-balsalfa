@@ -62,7 +62,7 @@ export class OnlineGameSystem {
       ServerEvents.USERNAME_UPDATED,
       (response: { username: string }) => {
         this.socket.io.opts.query = { username: response.username };
-      }
+      },
     );
 
     this.socket.on(
@@ -78,7 +78,7 @@ export class OnlineGameSystem {
         this.isAdmin = roomInfo.adminID === this.playerID;
 
         this.currentPhase = "lobby";
-      }
+      },
     );
 
     this.socket.on(
@@ -91,7 +91,7 @@ export class OnlineGameSystem {
 
         toast.error(response.message);
         this.router.push("/");
-      }
+      },
     );
 
     this.socket.on(
@@ -99,7 +99,7 @@ export class OnlineGameSystem {
       (response: { player: Player }) => {
         this.players.push(response.player);
         this.emit(OnlineEngineEvents.PLAYERS_UPDATED, this.players);
-      }
+      },
     );
 
     this.socket.on(ServerEvents.PLAYER_LEFT, (playerID: string) => {
@@ -117,7 +117,6 @@ export class OnlineGameSystem {
 
       this.currentRound = null;
       this.currentPhase = "lobby";
-
     });
 
     this.socket.on(
@@ -125,7 +124,7 @@ export class OnlineGameSystem {
       (response: { topics: Topic[] }) => {
         this.topics = response.topics || [];
         this.emit(OnlineEngineEvents.TOPICS_UPDATED, this.topics);
-      }
+      },
     );
 
     this.socket.on(
@@ -133,7 +132,7 @@ export class OnlineGameSystem {
       (response: { category: TopicCategory }) => {
         this.selectedCategory = response.category;
         this.emit(OnlineEngineEvents.TOPIC_CATEGORY_UPDATED, response.category);
-      }
+      },
     );
 
     this.socket.on(ServerEvents.ROUND_STARTED, (round: Round) => {
@@ -154,15 +153,15 @@ export class OnlineGameSystem {
       ServerEvents.FREE_QUESTION_ASK_DONE,
       (nextAskerID: string) => {
         this.emit(OnlineEngineEvents.FREE_QUESTION_ASK_DONE, nextAskerID);
-      }
+      },
     );
 
     this.socket.on(ServerEvents.ROUND_ENDED, (roomInfo: RoomInfo) => {
       this.currentRound = null;
       this.currentPhase = "lobby";
-      
+
       this.emit(OnlineEngineEvents.ROUND_ENDED, {});
-      
+
       this.topics = roomInfo.topics || [];
       this.roomID = roomInfo.id;
       this.players = roomInfo.players;
@@ -175,7 +174,7 @@ export class OnlineGameSystem {
       ServerEvents.PHASE_CHANGED,
       (response: { phase: GamePhase; currentRound: Round }) => {
         const { phase, currentRound } = response;
-        
+
         if (phase === "show-spy")
           toast.dismiss(OnlineGameSystem.VOTING_WAITING_TOAST_ID);
         else if (phase === "questions-phase")
@@ -185,7 +184,7 @@ export class OnlineGameSystem {
         this.currentRound = currentRound;
 
         this.emit(OnlineEngineEvents.PHASE_CHANGED, phase);
-      }
+      },
     );
 
     this.socket.on(
@@ -196,7 +195,7 @@ export class OnlineGameSystem {
             id: OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID,
           });
         }
-      }
+      },
     );
 
     this.socket.on(
@@ -204,7 +203,7 @@ export class OnlineGameSystem {
       (message: string) => {
         toast.dismiss(OnlineGameSystem.ROLE_ASSIGNMENT_WAITING_TOAST_ID);
         this.waitingForRoleAssignment = false;
-      }
+      },
     );
 
     this.socket.on(ServerEvents.VOTING_COUNTDOWN_STARTED, (message: string) => {
@@ -220,7 +219,7 @@ export class OnlineGameSystem {
       (message: string) => {
         toast.dismiss(OnlineGameSystem.VOTING_WAITING_TOAST_ID);
         this.waitingForVoting = false;
-      }
+      },
     );
 
     this.socket.on(
@@ -229,14 +228,14 @@ export class OnlineGameSystem {
         toast.error(response.message);
         this.cleanupGameEngine();
         this.router.push("/");
-      }
+      },
     );
 
     this.socket.on(ServerEvents.TOPIC_GUESSED, (round: Round) => {
       this.currentRound = round;
       this.emit(OnlineEngineEvents.TOPIC_GUESSED, {
         guessedTopic: round.guessedTopic,
-        correctTopic: round.topic
+        correctTopic: round.topic,
       });
     });
   }
@@ -384,7 +383,7 @@ export class OnlineGameSystem {
             this.waitingForRoleAssignment = true;
             resolve(true);
           }
-        }
+        },
       );
       resolve(true);
     });
@@ -417,7 +416,7 @@ export class OnlineGameSystem {
           } else {
             resolve(true);
           }
-        }
+        },
       );
     });
   }
@@ -435,7 +434,7 @@ export class OnlineGameSystem {
           } else {
             resolve(true);
           }
-        }
+        },
       );
     });
   }
@@ -477,7 +476,7 @@ export class OnlineGameSystem {
       this.socket.emit(ClientEvents.START_GUESS_TOPIC, (response: any) => {
         if (!response.success) {
           toast.error(
-            response.error?.message || "فشل في الانتقال إلى المرحلة التالية"
+            response.error?.message || "فشل في الانتقال إلى المرحلة التالية",
           );
           resolve(false);
         } else {
@@ -492,7 +491,7 @@ export class OnlineGameSystem {
       this.socket.emit(ClientEvents.GUESS_TOPIC, topicID, (response: any) => {
         if (!response.success) {
           toast.error(
-            response.error?.message || "فشل في ارسال توقعك ل السالفة"
+            response.error?.message || "فشل في ارسال توقعك ل السالفة",
           );
           resolve(false);
         } else {
@@ -543,7 +542,7 @@ export class OnlineGameSystem {
       this.socket.emit(
         ClientEvents.UPDATE_USERNAME,
         { username: newUsername },
-        resolve
+        resolve,
       );
     });
   }

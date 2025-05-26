@@ -20,10 +20,9 @@ export default function GamePage() {
       router.push("/");
     }
   }, [router, mode]);
-  
 
   useEffect(() => {
-    const handlePhaseChange = (phase: GamePhase) => {      
+    const handlePhaseChange = (phase: GamePhase) => {
       if (phase === "lobby" && window.location.pathname !== "/lobby") {
         return router.push("/lobby");
       }

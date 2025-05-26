@@ -15,7 +15,7 @@ import { translateCategory } from "@repo/game-core";
 import { OnlineEngineEvents } from "@/services/GameService";
 import toast from "react-hot-toast";
 import { PlayerCard } from "@/components/PlayerCard/PlayerCard";
-import { RoundCard } from '@/components/RoundCard/RoundCard';
+import { RoundCard } from "@/components/RoundCard/RoundCard";
 
 const WaitingPage = () => {
   const router = useRouter();
@@ -31,15 +31,15 @@ const WaitingPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<TopicCategory>(
     mode === "online"
       ? online.selectedCategory
-      : (offline.state.selectedCategory ?? "animals")
+      : (offline.state.selectedCategory ?? "animals"),
   );
 
   const [players, setPlayers] = useState<Player[]>(
-    mode === "online" ? online.players : offline.state.players
+    mode === "online" ? online.players : offline.state.players,
   );
 
   const [rounds, setRounds] = useState<Round[]>(
-    mode === "online"? online.rounds : offline.state.rounds
+    mode === "online" ? online.rounds : offline.state.rounds,
   );
 
   useEffect(() => {
@@ -49,8 +49,11 @@ const WaitingPage = () => {
   }, [mode, router]);
 
   useEffect(() => {
-    if(mode === "online" && online.currentPhase !== "lobby" || mode === "offline" && offline.state.phase !== "lobby") {
-      router.push("/game");   
+    if (
+      (mode === "online" && online.currentPhase !== "lobby") ||
+      (mode === "offline" && offline.state.phase !== "lobby")
+    ) {
+      router.push("/game");
     }
     const handleCategoryUpdate = (category: TopicCategory) => {
       setSelectedCategory(category);
@@ -65,14 +68,14 @@ const WaitingPage = () => {
 
     const handlePlayerLeft = (player: Player) => {
       setPlayers((prevPlayers) =>
-        prevPlayers.filter((p) => p.id !== player.id)
+        prevPlayers.filter((p) => p.id !== player.id),
       );
     };
 
-    const handlePlayerJoined = (player: Player) => {      
+    const handlePlayerJoined = (player: Player) => {
       setPlayers((prevPlayers: Player[]) => {
-        if (prevPlayers.some(p => p.id === player.id)) {
-          return prevPlayers; 
+        if (prevPlayers.some((p) => p.id === player.id)) {
+          return prevPlayers;
         }
         return [...prevPlayers, player];
       });
@@ -83,7 +86,7 @@ const WaitingPage = () => {
     if (mode === "online") {
       online.on(
         OnlineEngineEvents.TOPIC_CATEGORY_UPDATED,
-        handleCategoryUpdate
+        handleCategoryUpdate,
       );
       online.on(OnlineEngineEvents.PLAYERS_UPDATED, handlePlayersUpdate);
       online.on(OnlineEngineEvents.ROUND_STARTED, handleRoundStarted);
@@ -100,7 +103,7 @@ const WaitingPage = () => {
       if (mode === "online") {
         online.off(
           OnlineEngineEvents.TOPIC_CATEGORY_UPDATED,
-          handleCategoryUpdate
+          handleCategoryUpdate,
         );
         online.off(OnlineEngineEvents.PLAYERS_UPDATED, handlePlayersUpdate);
         online.off(OnlineEngineEvents.ROUND_STARTED, handleRoundStarted);
@@ -109,7 +112,7 @@ const WaitingPage = () => {
         offline.off(GameEvent.CATEGORY_CHANGED, handleCategoryUpdate);
         offline.off(GameEvent.ROUND_STARTED, handleRoundStarted);
         offline.off(GameEvent.PLAYER_LEFT, handlePlayerLeft);
-        offline.off(GameEvent.PLAYER_JOINED, handlePlayerJoined); 
+        offline.off(GameEvent.PLAYER_JOINED, handlePlayerJoined);
         offline.off(GameEvent.ERROR, handleError);
       }
     };
@@ -282,7 +285,11 @@ const WaitingPage = () => {
                 </div>
               ) : (
                 rounds.map((round) => (
-                  <RoundCard key={round.roundNumber} round={round} players={players} />
+                  <RoundCard
+                    key={round.roundNumber}
+                    round={round}
+                    players={players}
+                  />
                 ))
               )}
             </div>

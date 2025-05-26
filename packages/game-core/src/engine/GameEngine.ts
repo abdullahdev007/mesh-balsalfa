@@ -48,7 +48,7 @@ export class GameEngine extends EventEmitter {
       }
       if (
         this.stateManager.state.players.some(
-          (p: Player) => p.username === player.username
+          (p: Player) => p.username === player.username,
         )
       )
         throw Error(ERRORS.DUPLICATED_USERNAME);
@@ -72,7 +72,7 @@ export class GameEngine extends EventEmitter {
   public removePlayer(playerID: string): void {
     try {
       const player: Player = this.stateManager.state.players.find(
-        (p: Player) => p.id === playerID
+        (p: Player) => p.id === playerID,
       )!;
       this.stateManager.removePlayer(playerID);
 
@@ -86,7 +86,7 @@ export class GameEngine extends EventEmitter {
         this.stateManager.resetForNewRound();
         this.emit(
           GameEvent.ROUND_ENDED,
-          "the player in this round left frrom game"
+          "the player in this round left frrom game",
         );
       }
     } catch (error) {
@@ -164,7 +164,7 @@ export class GameEngine extends EventEmitter {
       // Assign roles and get random topic
       const updatedPlayers: Player[] = this.roleSystem.assignRoles(players);
       const topic: Topic = this.topicManager.getRandomTopic(
-        this.stateManager.state.selectedCategory ?? "animals"
+        this.stateManager.state.selectedCategory ?? "animals",
       );
 
       // update state and start new round
@@ -175,7 +175,7 @@ export class GameEngine extends EventEmitter {
 
       const guessList: Topic[] = this.topicManager.getGuessList(
         topic,
-        this.state.selectedCategory ?? "animals"
+        this.state.selectedCategory ?? "animals",
       );
 
       this.stateManager.startNewRound(topic, guessList);
@@ -196,7 +196,7 @@ export class GameEngine extends EventEmitter {
       });
 
       this.questionSystem.setupQuestionOrder(
-        this.stateManager.getCurrentRound()?.players!
+        this.stateManager.getCurrentRound()?.players!,
       );
 
       this.emit(GameEvent.PHASE_CHANGED, this.stateManager.state.phase);
@@ -230,7 +230,7 @@ export class GameEngine extends EventEmitter {
 
   public askFreeQuestion(
     askerPlayerID: string,
-    targetPlayerID: string
+    targetPlayerID: string,
   ): Question | undefined {
     try {
       if (this.stateManager.state.phase != "free-questions-phase")
@@ -238,7 +238,7 @@ export class GameEngine extends EventEmitter {
 
       const question: Question = this.freeQuestionSystem.getNextQuestion(
         askerPlayerID,
-        targetPlayerID
+        targetPlayerID,
       )!;
 
       this.emit(GameEvent.FREE_QUESTION_ASKED, question);
@@ -275,7 +275,7 @@ export class GameEngine extends EventEmitter {
       const vote: VoteResult = this.votingSystem.vote(
         voterID,
         suspectID,
-        roundVotes
+        roundVotes,
       );
 
       this.stateManager.getCurrentRound()?.votes.push(vote);
@@ -352,7 +352,7 @@ export class GameEngine extends EventEmitter {
       const correctVotes = currentRound.votes.filter(
         (vote: VoteResult) =>
           vote.voterID !== currentRound.spy.id &&
-          vote.suspectID === currentRound.spy.id
+          vote.suspectID === currentRound.spy.id,
       );
       const allInsidersGuessedCorrectly =
         correctVotes.length === currentRound.players.length - 1;
@@ -367,7 +367,7 @@ export class GameEngine extends EventEmitter {
       const updatedScores = [...currentRound.scores];
       const spyScoreEntry = { playerID: currentRound.spy.id, score: spyScore };
       const spyIndex = updatedScores.findIndex(
-        (s) => s.playerID === currentRound.spy.id
+        (s) => s.playerID === currentRound.spy.id,
       );
       if (spyIndex >= 0) {
         updatedScores[spyIndex] = spyScoreEntry;
@@ -381,14 +381,13 @@ export class GameEngine extends EventEmitter {
 
       this.emit(GameEvent.TOPIC_GUESSED, {
         guessedTopic: this.getCurrentRound?.guessedTopic,
-        correctTopic: this.getCurrentRound?.topic
+        correctTopic: this.getCurrentRound?.topic,
       });
     } catch (error) {
       console.log(`Error on guess the topic: ${error}`);
       this.emit(GameEvent.ERROR, error);
     }
   }
-
 
   public endRound(): void {
     try {
@@ -399,7 +398,7 @@ export class GameEngine extends EventEmitter {
 
       this.emit(GameEvent.PHASE_CHANGED, this.state.phase);
       this.emit(GameEvent.ROUND_ENDED, "Round was ended");
-    }catch (error) {
+    } catch (error) {
       console.log(`Error ending round: ${error}`);
       this.emit(GameEvent.ERROR, error);
     }
@@ -417,7 +416,7 @@ export class GameEngine extends EventEmitter {
       this.stateManager.updateState({
         phase: "lobby",
         rounds: this.stateManager.state.rounds.filter(
-          (r) => r.roundNumber !== this.stateManager.state.currentRound
+          (r) => r.roundNumber !== this.stateManager.state.currentRound,
         ),
       });
 

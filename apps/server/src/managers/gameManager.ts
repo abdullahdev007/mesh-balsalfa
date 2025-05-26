@@ -30,7 +30,7 @@ export class GameManager {
       // If player is not in game, throw error
       if (
         !this.players.some((player: Player) =>
-          player.isMatchingSocket(socketId)
+          player.isMatchingSocket(socketId),
         )
       ) {
         throw new Error("this socket id is not in game");
@@ -50,7 +50,7 @@ export class GameManager {
   getPlayerBySocketId(socketId: string): Player | null {
     try {
       const player = this.players.find(
-        (player: Player) => player.socketId === socketId
+        (player: Player) => player.socketId === socketId,
       );
       if (!player) {
         throw new Error("Player not found");

@@ -15,12 +15,12 @@ import { Topic, TopicCategory } from "@repo/game-core";
 export const handleRoomEvents = (
   io: Server,
   socket: Socket,
-  gameManager: GameManager
+  gameManager: GameManager,
 ) => {
   const roomsManager: RoomsManager = gameManager.roomsManager;
 
   // Create Destroy events
-  
+
   socket.on(ClientEvents.CREATE_ROOM, () => {
     try {
       const admin: Player | null = gameManager.getPlayerBySocketId(socket.id);
@@ -50,7 +50,6 @@ export const handleRoomEvents = (
         roomInfo,
         playerID: admin.id,
       });
-      
     } catch (error) {
       console.log("error", error);
       io.to(socket.id).emit(ServerEvents.ERROR, {
@@ -141,7 +140,7 @@ export const handleRoomEvents = (
         };
         if (callback) callback({ success: false, error: errorPayload });
       }
-    }
+    },
   );
 
   socket.on(ClientEvents.LEAVE_ROOM, (callback?: (response: any) => void) => {
@@ -201,57 +200,61 @@ export const handleRoomEvents = (
     }
   });
 
-  socket.on(ClientEvents.KICK_PLAYER, (playerID: string, callback?: (response: any) => void) => {
-    try {      
-      const admin: Player | null = gameManager.getPlayerBySocketId(socket.id);
-      
-      if (!admin || !admin.room || admin.room.admin.id !== admin.id) {
-        const errorPayload = {
-          type: ServerErrorType.NOT_ADMIN,
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.NOT_ADMIN]
-        };
-        if (callback) callback({ success: false, error: errorPayload });
-        return;
-      }
-  
-      const room = admin.room;
-      const playerToKick = room.players.find(p => p.id === playerID);
-  
-      if (!playerToKick) {
-        const errorPayload = {
-          type: ServerErrorType.PLAYER_NOT_FOUND,
-          message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND]
-        };
-        if (callback) callback({ success: false, error: errorPayload });
-        return;
-      }
-  
-      // Notify the kicked player
-      io.to(playerToKick.socketId).emit(ServerEvents.KICKED_FROM_ROOM, {
-        message: "تم طردك من الغرفة من قبل المشرف"
-      });
-  
-      // Remove player from room
-      const kickedPlayerSocket = io.sockets.sockets.get(playerToKick.socketId);
-      if (kickedPlayerSocket) {
-        kickedPlayerSocket.leave(room.id);
-      }
-      playerToKick.leaveRoom();
-  
-      // Notify other players in the room
-      io.to(room.id).emit(ServerEvents.PLAYER_LEFT, playerID);
-  
-      if (callback) callback({ success: true });
-    } catch (error) {
-      console.error("Error on kick player:", error);
-      const errorPayload = {
-        type: ServerErrorType.GENERAL_ERROR,
-        message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR]
-      };
-      if (callback) callback({ success: false, error: errorPayload });
-    }
-  });
+  socket.on(
+    ClientEvents.KICK_PLAYER,
+    (playerID: string, callback?: (response: any) => void) => {
+      try {
+        const admin: Player | null = gameManager.getPlayerBySocketId(socket.id);
 
+        if (!admin || !admin.room || admin.room.admin.id !== admin.id) {
+          const errorPayload = {
+            type: ServerErrorType.NOT_ADMIN,
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.NOT_ADMIN],
+          };
+          if (callback) callback({ success: false, error: errorPayload });
+          return;
+        }
+
+        const room = admin.room;
+        const playerToKick = room.players.find((p) => p.id === playerID);
+
+        if (!playerToKick) {
+          const errorPayload = {
+            type: ServerErrorType.PLAYER_NOT_FOUND,
+            message: SERVER_ERROR_MESSAGES[ServerErrorType.PLAYER_NOT_FOUND],
+          };
+          if (callback) callback({ success: false, error: errorPayload });
+          return;
+        }
+
+        // Notify the kicked player
+        io.to(playerToKick.socketId).emit(ServerEvents.KICKED_FROM_ROOM, {
+          message: "تم طردك من الغرفة من قبل المشرف",
+        });
+
+        // Remove player from room
+        const kickedPlayerSocket = io.sockets.sockets.get(
+          playerToKick.socketId,
+        );
+        if (kickedPlayerSocket) {
+          kickedPlayerSocket.leave(room.id);
+        }
+        playerToKick.leaveRoom();
+
+        // Notify other players in the room
+        io.to(room.id).emit(ServerEvents.PLAYER_LEFT, playerID);
+
+        if (callback) callback({ success: true });
+      } catch (error) {
+        console.error("Error on kick player:", error);
+        const errorPayload = {
+          type: ServerErrorType.GENERAL_ERROR,
+          message: SERVER_ERROR_MESSAGES[ServerErrorType.GENERAL_ERROR],
+        };
+        if (callback) callback({ success: false, error: errorPayload });
+      }
+    },
+  );
 
   // Topics Events
 
@@ -402,5 +405,3 @@ export const handleRoomEvents = (
     }
   });
 };
-
-

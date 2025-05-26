@@ -7,17 +7,16 @@ export class VotingSystem {
     this.players = players;
   }
 
-  vote(voterID: string, suspectID: string,votes: VoteResult[]) : VoteResult{
-    if(votes.some((voteResult: VoteResult) => voteResult.voterID == voterID)) 
+  vote(voterID: string, suspectID: string, votes: VoteResult[]): VoteResult {
+    if (votes.some((voteResult: VoteResult) => voteResult.voterID == voterID))
       throw Error("this player is already voted");
 
-    
     return {
       voterID,
-      suspectID
-    }
+      suspectID,
+    };
   }
 
-
-  isVotingComplete= (votes: VoteResult[]) : boolean => this.players.length <= votes.length
+  isVotingComplete = (votes: VoteResult[]): boolean =>
+    this.players.length <= votes.length;
 }

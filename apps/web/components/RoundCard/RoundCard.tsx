@@ -1,6 +1,6 @@
-import React from 'react';
-import styles from './styles.module.scss';
-import { Round, Player, translateCategory } from '@repo/game-core';
+import React from "react";
+import styles from "./styles.module.scss";
+import { Round, Player, translateCategory } from "@repo/game-core";
 
 interface RoundCardProps {
   round: Round;

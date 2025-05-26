@@ -8,8 +8,10 @@ import { useCountdown } from "@/hooks/useCountdown";
 import toast from "react-hot-toast";
 
 const ShowSpy: React.FC = () => {
-  const [isFirstTypewriterComplete, setIsFirstTypewriterComplete] = useState(false);
-  const [isSecondTypewriterComplete, setIsSecondTypewriterComplete] = useState(false);
+  const [isFirstTypewriterComplete, setIsFirstTypewriterComplete] =
+    useState(false);
+  const [isSecondTypewriterComplete, setIsSecondTypewriterComplete] =
+    useState(false);
   const { online, offline, mode } = useGame();
 
   const { timeLeft, start: startTimer } = useCountdown({
@@ -17,7 +19,7 @@ const ShowSpy: React.FC = () => {
     autoStart: false,
     onComplete: () => {
       if (mode === "online") {
-        if(online.isAdmin) online.startGuessTopic();
+        if (online.isAdmin) online.startGuessTopic();
       } else {
         offline.startGuessTopic();
       }
@@ -30,7 +32,6 @@ const ShowSpy: React.FC = () => {
 
   // Show countdown toast when typewriter is complete
   React.useEffect(() => {
-    
     if (isSecondTypewriterComplete && timeLeft > 0) {
       toast.loading(`الانتقال إلى المرحلة التالية خلال ${timeLeft} ثواني`, {
         id: "phase-transition",
@@ -46,18 +47,20 @@ const ShowSpy: React.FC = () => {
   if (!spy) return null;
 
   const votes: VoteResult[] = currentRound?.votes!;
-  
+
   const correctVoteNumbers = votes.filter(
-    (v: VoteResult) => v.voterID !== spy.id && v.suspectID === spy.id
+    (v: VoteResult) => v.voterID !== spy.id && v.suspectID === spy.id,
   ).length;
 
-  const allPlayersGuessedSpy = correctVoteNumbers === (currentRound?.players.length! - 1);
+  const allPlayersGuessedSpy =
+    correctVoteNumbers === currentRound?.players.length! - 1;
   const allPlayersDontGuessedSpy = correctVoteNumbers === 0;
 
-
-
   const messages = votes
-    .filter((vote: VoteResult) => vote.voterID !== spy.id && vote.suspectID === spy.id)
+    .filter(
+      (vote: VoteResult) =>
+        vote.voterID !== spy.id && vote.suspectID === spy.id,
+    )
     .map((vote: VoteResult) => {
       const voter =
         mode === "online"
@@ -70,8 +73,8 @@ const ShowSpy: React.FC = () => {
           : offline.state.players.find((p) => p.id === vote.suspectID);
 
       const score =
-        currentRound.scores.find((s) => s.playerID === vote.voterID)
-          ?.score || 0;
+        currentRound.scores.find((s) => s.playerID === vote.voterID)?.score ||
+        0;
 
       return {
         message: `${voter?.username} صوت على ${suspect?.username}`,
@@ -80,19 +83,19 @@ const ShowSpy: React.FC = () => {
       };
     });
 
-  if(allPlayersGuessedSpy) {
+  if (allPlayersGuessedSpy) {
     messages.push({
       message: `جميع الي بلسالفة اكتشفو الجاسوس`,
       score: `-5 نقاط للجساسوس`,
       positive: false,
-    })
-  } else if(allPlayersDontGuessedSpy) {
+    });
+  } else if (allPlayersDontGuessedSpy) {
     messages.push({
       message: `جميع الي بلسالفة لم يكتشفو الجاسوس`,
       score: `+5 نقاط للجساسوس`,
       positive: true,
-    })
-  }   
+    });
+  }
 
   return (
     <div className={mainStyles.container}>
@@ -105,12 +108,12 @@ const ShowSpy: React.FC = () => {
           onComplete={() => setIsFirstTypewriterComplete(true)}
         />
         {isFirstTypewriterComplete && (
-            <TypewriterText
-              text={`${correctVoteNumbers} اشخاص صوت صح`}
-              speed={40}
-              isArabic={true}
-              onComplete={() => setIsSecondTypewriterComplete(true)}
-            />
+          <TypewriterText
+            text={`${correctVoteNumbers} اشخاص صوت صح`}
+            speed={40}
+            isArabic={true}
+            onComplete={() => setIsSecondTypewriterComplete(true)}
+          />
         )}
       </div>
 
@@ -124,7 +127,7 @@ const ShowSpy: React.FC = () => {
                   className={styles.voteItem}
                   style={{ animationDelay: `${index * 0.2}s` }}
                 >
-                  <span>{message?.message}                  </span>
+                  <span>{message?.message} </span>
                   <strong
                     style={{
                       background: message?.positive ? "green" : "red",
@@ -137,7 +140,6 @@ const ShowSpy: React.FC = () => {
             })}
         </ul>
       </div>
-      
     </div>
   );
 };

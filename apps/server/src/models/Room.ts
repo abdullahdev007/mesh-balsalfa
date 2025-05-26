@@ -31,20 +31,22 @@ export class Room {
     // If player already in another room, throw error
     if (player.room !== undefined) {
       throw new Error(
-        `Player already in another room (room id: ${player.room.id})`
+        `Player already in another room (room id: ${player.room.id})`,
       );
     }
 
     // Check if room is full
     if (this.players.length >= 12) {
-      throw new Error(SERVER_ERROR_MESSAGES[ServerErrorType.MAX_PLAYERS_REACHED]);
+      throw new Error(
+        SERVER_ERROR_MESSAGES[ServerErrorType.MAX_PLAYERS_REACHED],
+      );
     }
 
     // Add player to room
     player.room = this;
     this.gameEngine.addPlayer(player.gamePlayer);
     this.players.push(player);
-}
+  }
 
   // Remove player from the room
   public removePlayer(playerId: string): void {
@@ -64,8 +66,8 @@ export class Room {
 
   //check if player in room
   public hasPlayer = (playerId: string): boolean =>
-    this.players.some(player => player.id === playerId);
-  
+    this.players.some((player) => player.id === playerId);
+
   public toJSON() {
     return {
       id: this.id,

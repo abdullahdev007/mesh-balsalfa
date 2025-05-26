@@ -70,7 +70,10 @@ const Home = () => {
             <div className={styles.button} onClick={handleStartLocalGame}>
               <span>لعبة محلية</span>
             </div>
-            <div className={styles.button} onClick={() => router.push('/about')}>
+            <div
+              className={styles.button}
+              onClick={() => router.push("/about")}
+            >
               <span>عن اللعبة</span>
             </div>
           </div>

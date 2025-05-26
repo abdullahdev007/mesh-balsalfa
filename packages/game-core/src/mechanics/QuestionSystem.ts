@@ -14,7 +14,7 @@ export class QuestionSystem {
 
   public setupQuestionOrder(players: Player[]): void {
     if (!players || !Array.isArray(players)) {
-      throw new Error('Invalid players array provided to setupQuestionOrder');
+      throw new Error("Invalid players array provided to setupQuestionOrder");
     }
     this.questionOrder = this.shuffleArray([...players]);
     this.currentQuestionIndex = 0;
@@ -22,7 +22,7 @@ export class QuestionSystem {
 
   private shuffleArray<T>(array: T[]): T[] {
     if (!array || !Array.isArray(array)) {
-      throw new Error('Invalid array provided to shuffleArray');
+      throw new Error("Invalid array provided to shuffleArray");
     }
     return [...array].sort(() => Math.random() - 0.5);
   }
@@ -31,7 +31,6 @@ export class QuestionSystem {
     if (this.thisLastQuestion) return;
 
     const asker: Player = this.questionOrder[this.currentQuestionIndex]!;
-
 
     const target =
       this.questionOrder[

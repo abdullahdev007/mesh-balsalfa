@@ -5,7 +5,7 @@ import React from "react";
 import styles from "./styles.module.scss";
 import ThemeToggle from "../themeToggle/themeToggle";
 
-import { Tooltip } from 'react-tooltip';
+import { Tooltip } from "react-tooltip";
 
 const Footer = () => {
   return (

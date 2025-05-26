@@ -9,7 +9,7 @@ export class FreeQuestionSystem {
 
   public getNextQuestion(
     askerPlayerID: string,
-    targetPlayerID: string
+    targetPlayerID: string,
   ): Question | null {
     if (this.players.length === 0) {
       throw new Error("No players available");

@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import styles from './styles.module.scss';
+import React, { useEffect, useState, useRef } from "react";
+import styles from "./styles.module.scss";
 
 interface TypewriterTextProps {
   text: string;
@@ -16,15 +16,18 @@ const TypewriterText: React.FC<TypewriterTextProps> = ({
   isArabic = false,
   onComplete,
   skipAnimation = false,
-  className = '',
+  className = "",
 }) => {
-  const [displayedText, setDisplayedText] = useState('');
+  const [displayedText, setDisplayedText] = useState("");
   const [index, setIndex] = useState(0);
   const previousText = useRef(text);
 
   useEffect(() => {
     // If skipAnimation is true or text has changed and it's a timer update
-    if (skipAnimation || (text !== previousText.current && text.includes('ثانية'))) {
+    if (
+      skipAnimation ||
+      (text !== previousText.current && text.includes("ثانية"))
+    ) {
       setDisplayedText(text);
       setIndex(text.length);
       if (onComplete) onComplete();
@@ -34,7 +37,7 @@ const TypewriterText: React.FC<TypewriterTextProps> = ({
 
     // If text has changed, reset the animation
     if (text !== previousText.current) {
-      setDisplayedText('');
+      setDisplayedText("");
       setIndex(0);
       previousText.current = text;
       return;
@@ -54,8 +57,8 @@ const TypewriterText: React.FC<TypewriterTextProps> = ({
 
   return (
     <div
-      className={`${styles.typewriterContainer} ${isArabic ? styles.arabic : ''} ${className}`}
-      dir={isArabic ? 'rtl' : 'ltr'}
+      className={`${styles.typewriterContainer} ${isArabic ? styles.arabic : ""} ${className}`}
+      dir={isArabic ? "rtl" : "ltr"}
     >
       <p className={styles.typewriterText}>{displayedText}</p>
     </div>

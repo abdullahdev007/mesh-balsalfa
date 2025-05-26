@@ -12,7 +12,6 @@ export class RoomsManager {
       admin.room = room;
       room.gameEngine.addPlayer(admin.gamePlayer);
 
-      
       console.log(`Room with ${room.id} is created by ${admin.name} player`);
       return room;
     } catch (error) {

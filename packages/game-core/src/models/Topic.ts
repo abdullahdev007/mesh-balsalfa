@@ -4,20 +4,20 @@ export interface Topic {
   name: string;
 }
 
-export type TopicCategory = 
-  | 'foods'
-  | 'clothes'
-  | 'places'
+export type TopicCategory =
+  | "foods"
+  | "clothes"
+  | "places"
   | "transportation"
   | "professions"
   | "youtubers"
-  | 'animals'
+  | "animals"
   | "cartoons"
   | "characters"
   | "series"
   | "cars";
 
-export const  CategoryTranslations = {
+export const CategoryTranslations = {
   foods: "أطعمة",
   clothes: "ملابس",
   places: "أماكن",
@@ -28,5 +28,5 @@ export const  CategoryTranslations = {
   cartoons: "رسوم متحركة",
   characters: "شخصيات",
   series: "مسلسلات",
-  cars: "سيارات"
+  cars: "سيارات",
 };

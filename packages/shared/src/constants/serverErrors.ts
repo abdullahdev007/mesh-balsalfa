@@ -9,7 +9,7 @@ export enum ServerErrorType {
   CANNOT_VOTE = "CANNOT_VOTE",
   CANNOT_GUESS_TOPIC = "CANNOT_GUESS_TOPIC",
   NOT_ENOUGH_PLAYERS = "NOT_ENOUGH_PLAYERS",
-  MAX_PLAYERS_REACHED = "MAX_PLAYERS_REACHED"
+  MAX_PLAYERS_REACHED = "MAX_PLAYERS_REACHED",
 }
 
 export const SERVER_ERROR_MESSAGES = {
@@ -25,7 +25,7 @@ export const SERVER_ERROR_MESSAGES = {
   [ServerErrorType.CANNOT_VOTE]: "لا يمكنك التصويت في هذه المرحلة من الجولة",
   [ServerErrorType.CANNOT_GUESS_TOPIC]:
     "لا يمكنك تخمين الموضوع في هذه المرحلة من الجولة",
-  [ServerErrorType.NOT_ENOUGH_PLAYERS]:
-    "لا يمكن بدء الجولة بأقل من 3 لاعبين ",
-  [ServerErrorType.MAX_PLAYERS_REACHED]: "لا يمكن الانضمام إلى الغرفة، الحد الأقصى هو 12 لاعب"
+  [ServerErrorType.NOT_ENOUGH_PLAYERS]: "لا يمكن بدء الجولة بأقل من 3 لاعبين ",
+  [ServerErrorType.MAX_PLAYERS_REACHED]:
+    "لا يمكن الانضمام إلى الغرفة، الحد الأقصى هو 12 لاعب",
 };

@@ -1,2 +1,2 @@
 export * from "./translateCategory.js";
-export * from './generateUserId.js';
+export * from "./generateUserId.js";

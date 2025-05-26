@@ -1,4 +1,4 @@
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import mainStyles from "../../styles.module.scss";
 import { useGame } from "@/context/GameContext";
 import TypewriterText from "@/components/Typewriter/Typewriter";
@@ -32,7 +32,7 @@ const RoleAssignment: React.FC = () => {
               online?.currentRound?.spy.id === online.playerID
                 ? SPY_DESCRIPTION
                 : INTOPIC_DESCRIPTION(
-                    online?.currentRound?.topic?.name || "No Topic"
+                    online?.currentRound?.topic?.name || "No Topic",
                   )
             }
             speed={40}
@@ -69,9 +69,7 @@ const RoleAssignment: React.FC = () => {
   const isSpy = currentPlayer?.role === "Spy";
   const topic = offline.getCurrentRound?.topic?.name || "No Topic";
 
-
   const getCurrentText = () => {
-    
     if (!showingRole) {
       return PASS_DEVICE_MESSAGE(currentPlayer?.username || "");
     }
@@ -83,7 +81,7 @@ const RoleAssignment: React.FC = () => {
       <div className={mainStyles.title}>توزيع الادوار</div>
       <div className={mainStyles.description}>
         <TypewriterText
-          key={`${currentPlayerIndex}-${showingRole}`} 
+          key={`${currentPlayerIndex}-${showingRole}`}
           text={getCurrentText()}
           speed={40}
           isArabic={true}

@@ -44,7 +44,7 @@ export class TopicManager {
 
   updateTopic(updatedTopic: Topic): void {
     const topicIndex = this.topics.findIndex(
-      (topic) => topic.id === updatedTopic.id
+      (topic) => topic.id === updatedTopic.id,
     );
 
     if (topicIndex !== -1) {
@@ -72,7 +72,7 @@ export class TopicManager {
 
     for (let i = 0; i < 7; i++) {
       guessList.push(
-        i === correctIndex ? correctTopic : this.getRandomTopic(topicCategory)
+        i === correctIndex ? correctTopic : this.getRandomTopic(topicCategory),
       );
     }
 

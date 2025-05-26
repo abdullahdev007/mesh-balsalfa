@@ -43,21 +43,21 @@ export class GameStateManager {
 
   public removePlayer = (playerID: string) =>
     (this.state.players = this.state.players.filter(
-      (player: Player) => player.id !== playerID
+      (player: Player) => player.id !== playerID,
     ));
 
-  public startNewRound(topic: Topic,guessList: Topic[]): void {
+  public startNewRound(topic: Topic, guessList: Topic[]): void {
     this.state.rounds.push({
       roundNumber: this.state.currentRound,
       topic: topic,
       topicCategory: topic.category,
       // Create a deep copy of players to preserve their data
-      players: this.state.players.map(player => ({
+      players: this.state.players.map((player) => ({
         ...player,
         username: player.username,
         id: player.id,
         role: player.role,
-        score: player.score
+        score: player.score,
       })),
       guessList: guessList,
       votes: [],
@@ -69,7 +69,7 @@ export class GameStateManager {
         username: this.getSpyPlayer()!.username,
         id: this.getSpyPlayer()!.id,
         role: this.getSpyPlayer()!.role,
-        score: this.getSpyPlayer()!.score
+        score: this.getSpyPlayer()!.score,
       },
     });
   }
@@ -88,7 +88,7 @@ export class GameStateManager {
   public updateTotalScores(scores: ScoreEntry[]): void {
     scores.forEach((roundScore) => {
       const player = this.state.players.find(
-        (p) => p.id === roundScore.playerID
+        (p) => p.id === roundScore.playerID,
       );
       if (player) {
         player.score += roundScore.score;

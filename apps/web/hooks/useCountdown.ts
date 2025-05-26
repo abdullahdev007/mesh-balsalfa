@@ -1,19 +1,19 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 
 type CountdownOptions = {
-  duration: number;            // total time in seconds
-  onComplete?: () => void;     // callback when countdown finishes
-  onReset?: () => void;        // callback when timer is reset
-  onPause?: () => void;        // callback when timer is paused
-  autoStart?: boolean;         // whether to start timer automatically
+  duration: number; // total time in seconds
+  onComplete?: () => void; // callback when countdown finishes
+  onReset?: () => void; // callback when timer is reset
+  onPause?: () => void; // callback when timer is paused
+  autoStart?: boolean; // whether to start timer automatically
 };
 
-export function useCountdown({ 
-  duration, 
-  onComplete, 
-  onReset, 
+export function useCountdown({
+  duration,
+  onComplete,
+  onReset,
   onPause,
-  autoStart = true 
+  autoStart = true,
 }: CountdownOptions) {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isActive, setIsActive] = useState(autoStart);
@@ -61,7 +61,7 @@ export function useCountdown({
     if (!isActive || isPaused) return;
 
     intervalRef.current = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         const newTime = prev - 1;
         if (newTime <= 0) {
           clearInterval(intervalRef.current);
@@ -77,13 +77,13 @@ export function useCountdown({
     };
   }, [timeLeft, onComplete, isActive, isPaused]);
 
-  return { 
-    timeLeft, 
-    reset, 
+  return {
+    timeLeft,
+    reset,
     start,
-    pause, 
-    resume, 
+    pause,
+    resume,
     isPaused,
-    isActive 
+    isActive,
   };
 }

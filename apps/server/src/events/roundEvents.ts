@@ -14,7 +14,7 @@ import { GameEvent, GamePhase, Question, Round } from "@repo/game-core";
 export const handleRoundEvents = (
   io: Server,
   socket: Socket,
-  gameManager: GameManager
+  gameManager: GameManager,
 ) => {
   socket.on(ClientEvents.START_ROUND, (callback) => {
     try {
@@ -83,7 +83,7 @@ export const handleRoundEvents = (
 
       room.gameEngine.on(GameEvent.PHASE_CHANGED, (phase: GamePhase) => {
         console.log("phase changed :", phase);
-        
+
         io.to(room.id).emit(ServerEvents.PHASE_CHANGED, {
           phase,
           currentRound: room.gameEngine.getCurrentRound,
@@ -92,7 +92,7 @@ export const handleRoundEvents = (
 
       io.to(room.id).emit(
         ServerEvents.ROUND_STARTED,
-        room.gameEngine.getCurrentRound
+        room.gameEngine.getCurrentRound,
       );
 
       callback({ success: true });
@@ -124,7 +124,7 @@ export const handleRoundEvents = (
         const message: string = SERVER_MESSAGES.ROLE_ASSIGN_COMPLETED;
         io.to(room.id).emit(
           ServerEvents.ROLE_ASSIGN_COUNTDOWN_COMPLETE,
-          message
+          message,
         );
 
         room.gameEngine.startQuestionPhase()!;
@@ -149,7 +149,7 @@ export const handleRoundEvents = (
         const message: string = SERVER_MESSAGES.ROLE_ASSIGN_TIMER_STARTED;
         io.to(room.id).emit(
           ServerEvents.ROLE_ASSIGN_COUNTDOWN_STARTED,
-          message
+          message,
         );
 
         // Start countdown
@@ -236,7 +236,7 @@ export const handleRoundEvents = (
 
         const question: Question = room.gameEngine.askFreeQuestion(
           player.id,
-          targetPlayerID
+          targetPlayerID,
         )!;
 
         io.to(room.id).emit(ServerEvents.FREE_QUESTION_ASKED, question);
@@ -250,7 +250,7 @@ export const handleRoundEvents = (
           },
         });
       }
-    }
+    },
   );
 
   socket.on(
@@ -279,7 +279,7 @@ export const handleRoundEvents = (
           },
         });
       }
-    }
+    },
   );
 
   socket.on(ClientEvents.START_VOTING, (callback) => {
@@ -355,7 +355,7 @@ export const handleRoundEvents = (
             // Get players who haven't voted yet
             const votedPlayers = roundManager.getWaitingList(timerId);
             const nonVotedPlayers = Array.from(room.players.values()).filter(
-              (player) => !votedPlayers.has(player.id)
+              (player) => !votedPlayers.has(player.id),
             );
 
             // Make non-voted players vote for themselves
@@ -366,7 +366,7 @@ export const handleRoundEvents = (
             const message = SERVER_MESSAGES.VOTING_COUNTDOWN_COMPLETED;
             io.to(room.id).emit(
               ServerEvents.VOTING_COUNTDOWN_COMPLETE,
-              message
+              message,
             );
           },
         });
@@ -448,7 +448,7 @@ export const handleRoundEvents = (
       room.gameEngine.guessTopic(topicID, player.id);
       io.to(room.id).emit(
         ServerEvents.TOPIC_GUESSED,
-        room.gameEngine.getCurrentRound
+        room.gameEngine.getCurrentRound,
       );
     } catch (error) {
       console.log(`Error on GUESS_TOPIC event : ${error}`);

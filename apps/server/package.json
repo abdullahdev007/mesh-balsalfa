@@ -2,23 +2,29 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "src/server.ts",
+  "main": "dist/server.js",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec tsx src/server.ts",
+    "start": "node dist/server.js",
     "build": "tsc"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "nanoid": "^5.1.5",
+    "socket.io": "^4.8.1",
+    "dotenv": "^16.4.7",
+    "@repo/game-core": "*",
+    "@repo/shared": "*"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
-    "@repo/game-core": "*",
-    "@repo/shared": "*",
     "@repo/typescript-config": "*",
     "@types/express": "^5.0.0",
-    "dotenv": "^16.4.7",
     "eslint": "^9.19.0",
     "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsc-watch": "^6.2.1",
     "tsconfig-paths": "^4.2.0",
@@ -27,11 +33,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.21.2",
-    "nanoid": "^5.1.5",
-    "socket.io": "^4.8.1",
-    "ts-node": "^10.9.2"
-  }
+  "license": "ISC"
 }

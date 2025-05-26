@@ -17,7 +17,6 @@ export const ServerEvents = {
   QUESTION_ASKED: "round:question_asked", // question asked in game
   FREE_QUESTION_ASKED: "round:free_question_asked", // free question Asked
   FREE_QUESTION_ASK_DONE: "round:free_question_ask_done", // emit to players the free question ask complete
-  
 
   ROLE_ASSIGN_COUNTDOWN_STARTED: "round:role_assign_countdown:start", // role assign countdown complete
   ROLE_ASSIGN_COUNTDOWN_COMPLETE: "round:role_assign_countdown:complete", // role assign countdown complete
@@ -50,7 +49,7 @@ export const ClientEvents = {
   FREE_QUESTION_ASK_DONE: "round:free_question_ask_done", // free question ask done
   START_GUESS_TOPIC: "round:start_guess_topic", // start guess topic
   END_ROUND: "round:end", // end round
-  
+
   ADD_TOPIC: "topics:add",
   REMOVE_TOPIC: "topics:remove",
   UPDATE_TOPIC: "topics:update",

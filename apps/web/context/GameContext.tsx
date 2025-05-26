@@ -54,15 +54,14 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const cleanupOfflineGameEngine = () => {
-      if (gameSystems?.offline) {
-          gameSystems.offline.removeAllListeners();
-          setGameSystems((prev) => ({
-              ...prev!,
-              offline: new GameEngine(),
-          }));
-      }
+    if (gameSystems?.offline) {
+      gameSystems.offline.removeAllListeners();
+      setGameSystems((prev) => ({
+        ...prev!,
+        offline: new GameEngine(),
+      }));
+    }
   };
-
 
   useEffect(() => {
     setGameSystems({

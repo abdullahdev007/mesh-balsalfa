@@ -8,7 +8,7 @@ export class Player {
 
   constructor(
     public name: string,
-    public socketId: string
+    public socketId: string,
   ) {
     this.id = generateUserId();
     this.gamePlayer = this.createGamePlayer();
@@ -44,7 +44,7 @@ export class Player {
     } catch (error) {
       console.log(
         `error on join ${this.id} player to ${newRoom.id} room :`,
-        error
+        error,
       );
       throw new Error(`error on join player to room`);
     }

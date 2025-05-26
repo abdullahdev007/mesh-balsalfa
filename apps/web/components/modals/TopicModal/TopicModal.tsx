@@ -25,7 +25,7 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
   const { online, offline, mode } = useGame();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [groupedTopics, setGroupedTopics] = useState<Record<string, Topic[]>>(
-    {}
+    {},
   );
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
@@ -40,7 +40,7 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
         acc[categoryName].push(topic);
         return acc;
       },
-      {} as Record<string, Topic[]>
+      {} as Record<string, Topic[]>,
     );
   }, []);
 
@@ -104,13 +104,12 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
       offline.selectCategory(category);
     }
 
-
     onClose();
   };
 
   const toggleUpdateMode = (category: string) => {
     setUpdateMode((prev) =>
-      prev === category ? null : (category as TopicCategory)
+      prev === category ? null : (category as TopicCategory),
     );
   };
 
@@ -158,7 +157,7 @@ function TopicModal({ isOpen, onClose }: TopicModalProps) {
       setEditingTopicId(null);
       setEditedTopicName("");
     },
-    [updateMode, editedTopicName, online, offline, isAdmin, mode]
+    [updateMode, editedTopicName, online, offline, isAdmin, mode],
   );
 
   const submitNewTopic = useCallback(() => {
