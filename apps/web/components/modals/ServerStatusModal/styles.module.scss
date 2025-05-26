@@ -1,0 +1,104 @@
+@use 'sass:color';
+
+.modal {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  direction: rtl;
+  
+  &.light {
+    background-color: $light-color;
+    color: $dark-color;
+    border: 1px solid $grey-color;
+  }
+
+  &.dark {
+    background-color: $dark-color;
+    color: $light-color;
+    border: 1px solid $secondary-color;
+  }
+}
+
+.modalOverlay {
+  &.light {
+    background-color: rgba(45, 49, 66, 0.5);
+  }
+
+  &.dark {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.content {
+  padding: 24px;
+  text-align: center;
+}
+
+.iconContainer {
+  margin-bottom: 20px;
+}
+
+.spinner {
+  font-size: 48px;
+  color: $primary-color;
+  opacity: 0.8;
+  
+  &.spinning {
+    animation: spin 1s linear infinite;
+  }
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: inherit;
+}
+
+.explanation {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: right;
+
+  .infoIcon {
+    color: #ffc107;
+    font-size: 20px;
+    margin-top: 4px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+
+.aboutButton {
+  background-color: $primary-color;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: color.adjust($primary-color, $lightness: -10%);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

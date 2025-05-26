@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useTheme } from "@/context/ThemeContext";
+import { useGame } from "@/context/GameContext";
+import { OnlineEngineEvents } from "@/services/GameService";
+import { toast } from "react-hot-toast";
 import styles from "./styles.module.scss";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -32,10 +35,11 @@ const SLOGANS = [
 
 const AboutPage = () => {
   const { theme } = useTheme();
+  const { online } = useGame();
   const router = useRouter();
   const [currentSloganIndex, setCurrentSloganIndex] = useState(0);
   const [isFading, setIsFading] = useState(false);
-
+  const toastRef = React.useRef<string>(undefined);
   useEffect(() => {
     const interval = setInterval(() => {
       setIsFading(true);

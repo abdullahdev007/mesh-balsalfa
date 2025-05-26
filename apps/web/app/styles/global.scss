@@ -7,7 +7,6 @@
 
 :root {
   background-color: color.adjust($light-color, $lightness:  -15%);
-  font-family: "Rubik", sans-serif;
   color: $dark-color;
 
   --reverse-theme-color: #{$dark-color};

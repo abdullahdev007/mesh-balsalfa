@@ -14,6 +14,7 @@ export const setupSocket = (io: Server) => {
   const gameManager: GameManager = new GameManager();
 
   io.on("connection", (socket: Socket) => {
+
     // Explicitly define socket as Socket
     const username = socket.handshake.query.username as string | undefined;
 
@@ -34,6 +35,11 @@ export const setupSocket = (io: Server) => {
           username: newUsername,
         });
       }
+    });
+
+    // Add ping handler
+    socket.on('ping', () => {
+      socket.emit('pong');            
     });
 
     socket.on("disconnect", () => {

@@ -11,6 +11,14 @@ import Footer from "@/components/footer/footer";
 import ToastProvider from "@/components/toastProvider/ToastProvider";
 
 import { GameProvider } from "@/context/GameContext";
+import { ServerStatusModal } from "@/components/modals/ServerStatusModal/ServerStatusModal";
+
+import { Rubik } from 'next/font/google';
+
+const rubik = Rubik({
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: "مش بلسالفة",
@@ -33,13 +41,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar">
+    <html lang="ar" className={rubik.className}>
       <body>
         <GameProvider>
           <ThemeProvider>
             <div className="main">{children}</div>
             <Footer />
             <ToastProvider />
+            <ServerStatusModal />
           </ThemeProvider>
         </GameProvider>
       </body>

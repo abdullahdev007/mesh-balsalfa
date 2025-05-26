@@ -66,6 +66,12 @@
               $lightness: 7.5%
             ); // Using color.adjust
           }
+
+          &.disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+            pointer-events: none;
+          }
         }
       }
 

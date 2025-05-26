@@ -15,11 +15,11 @@ const io = new Server(server, {
 });
 
 setupSocket(io);
-
 const PORT = process.env.PORT;
 server.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });
+
 
 function shutdown() {
   console.log("[SERVER] Shutting down...");

@@ -25,9 +25,12 @@ export const OnlineEngineEvents = {
   FREE_QUESTION_ASKED: "round:free_question",
   FREE_QUESTION_ASK_DONE: "round:free_question_done",
   TOPIC_GUESSED: "round:topic_guessed",
+  CONNECTION_STATUS: "connection:status",
 };
 
 export class OnlineGameSystem {
+  private pingInterval: NodeJS.Timeout | null = null;
+
   private static readonly ROLE_ASSIGNMENT_WAITING_TOAST_ID =
     "role_assignment_waiting" as const;
 
@@ -38,6 +41,9 @@ export class OnlineGameSystem {
 
   private socket: Socket;
   private router: ReturnType<typeof useRouter>;
+  public isServerConnected: boolean = false;
+  private showStatusModal: boolean = true;
+
   // Fix listeners type
   private listeners: Map<string, Set<Function>> = new Map();
   public topics: Topic[] = [];
@@ -54,9 +60,56 @@ export class OnlineGameSystem {
   constructor(username: string, router: ReturnType<typeof useRouter>) {
     this.socket = io(process.env.NEXT_PUBLIC_SERVER_URL!, {
       query: { username },
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 2000
     });
 
     this.router = router;
+
+    // Handle successful connection
+    this.socket.on('connect', () => {
+      console.log("connect");
+      
+      const wasDisconnected = !this.isServerConnected;
+      this.isServerConnected = true;
+      this.showStatusModal = false;
+      
+      if (wasDisconnected) {
+        this.startPingInterval()
+        this.emitConnectionStatus();
+      }
+    });
+
+    // Handle connection error
+    this.socket.on('connect_error', () => {
+      const wasConnected = this.isServerConnected;
+      this.isServerConnected = false;
+      this.showStatusModal = true;
+      
+      if (wasConnected) {
+        if(this.pingInterval)
+          clearInterval(this.pingInterval);
+        this.emitConnectionStatus();
+      }
+    });
+
+    // Handle disconnection
+    this.socket.on('disconnect', () => {
+      const wasConnected = this.isServerConnected;
+      this.isServerConnected = false;
+      this.showStatusModal = true;
+      if (this.pingInterval) {
+        clearInterval(this.pingInterval);
+        this.pingInterval = null;
+      }
+      
+      if (wasConnected) {
+        if(this.pingInterval)
+          clearInterval(this.pingInterval);
+        this.emitConnectionStatus();
+      }
+    });
 
     this.socket.on(
       ServerEvents.USERNAME_UPDATED,
@@ -238,6 +291,16 @@ export class OnlineGameSystem {
         correctTopic: round.topic,
       });
     });
+  }
+
+
+  private emitConnectionStatus() {
+
+    this.emit(OnlineEngineEvents.CONNECTION_STATUS,{
+      isConnected: this.isServerConnected,
+      showModal: this.showStatusModal
+    })
+
   }
 
   // Category management
@@ -549,7 +612,18 @@ export class OnlineGameSystem {
 
   // cleanup
 
-  private cleanupGameEngine() {
+  private startPingInterval() {
+    this.pingInterval = setInterval(() => {
+      this.socket.emit('ping');
+    },14 * 60 * 1000);
+  }
+
+  // Add to your cleanup method
+  public cleanupGameEngine() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
     // Reset room state
     this.topics = [];
     this.roomID = null;
