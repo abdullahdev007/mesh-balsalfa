@@ -22,7 +22,6 @@ export const ServerStatusModal = () => {
 
   React.useEffect(() => {
     const handleStatus = (newStatus: { isConnected: boolean; showModal: boolean }) => {
-      // Clear existing toast if any
       if (toastId.current) {
         toast.dismiss(toastId.current);
         toastId.current = undefined;

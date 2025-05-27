@@ -48,13 +48,15 @@ const WaitingPage = () => {
     }
   }, [mode, router]);
 
-  useEffect(() => {
+  useEffect(() => {    
     if (
+      (mode !== null) && 
       (mode === "online" && online.currentPhase !== "lobby") ||
       (mode === "offline" && offline.state.phase !== "lobby")
     ) {
       router.push("/game");
     }
+
     const handleCategoryUpdate = (category: TopicCategory) => {
       setSelectedCategory(category);
       toast.success(`تم تحديث السالفة الى ${translateCategory(category)}`);

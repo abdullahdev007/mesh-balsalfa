@@ -68,9 +68,7 @@ export class OnlineGameSystem {
     this.router = router;
 
     // Handle successful connection
-    this.socket.on('connect', () => {
-      console.log("connect");
-      
+    this.socket.on('connect', () => {      
       const wasDisconnected = !this.isServerConnected;
       this.isServerConnected = true;
       this.showStatusModal = false;
