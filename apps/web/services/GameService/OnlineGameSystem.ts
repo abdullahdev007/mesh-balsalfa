@@ -386,7 +386,6 @@ export class OnlineGameSystem {
         } else {
           this.cleanupGameEngine();
 
-          this.router.push("/");
 
           resolve(true);
         }

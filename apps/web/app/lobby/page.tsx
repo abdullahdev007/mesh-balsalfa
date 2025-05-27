@@ -49,9 +49,11 @@ const WaitingPage = () => {
   );
 
   useEffect(() => {
-    if (mode === null) {      
+    if (mode === null) {
       cleanupOfflineGameEngine();
       cleanupOnlineGameEngine();
+
+      router.push("/");
     }
   }, [mode, router]);
 
@@ -174,7 +176,7 @@ const WaitingPage = () => {
     try {
       if (mode === "online") {
         await online.leaveRoom();
-        cleanupOfflineGameEngine();
+        await cleanupOnlineGameEngine();
       } else if (mode === "offline") {
         await cleanupOfflineGameEngine();
       }
