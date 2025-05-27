@@ -8,6 +8,8 @@ import { useTheme } from "@/context/ThemeContext";
 import { useEffect, useMemo, useState } from "react";
 import dynamic from 'next/dynamic';
 
+
+
 const UsernameInput = dynamic(
   () => import('@/components/usernameInput/usernameInput'),
   { ssr: false }
@@ -22,18 +24,20 @@ const Home = () => {
   const [roomID, setRoomId] = useState<string>("");
   const router = useRouter();
   const { online, setMode, offline, username } = useGame();
-  const [isConnected, setIsConnected] = useState(online?.isServerConnected ?? false);
+  const [isConnected, setIsConnected] = useState(online?.isServerConnected);
 
   useEffect(() => {
     const handleConnectionStatus = (status: { isConnected: boolean }) => {
       setIsConnected(status.isConnected);
+      console.log("the connection status changed:", status.isConnected);
+      
     };
 
     online?.on(OnlineEngineEvents.CONNECTION_STATUS, handleConnectionStatus);
     return () => {
       online?.off(OnlineEngineEvents.CONNECTION_STATUS, handleConnectionStatus);
     };
-  }, [online]);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.toUpperCase();

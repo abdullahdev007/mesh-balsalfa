@@ -49,7 +49,7 @@ const ShowSpy: React.FC = () => {
   const votes: VoteResult[] = currentRound?.votes!;
 
   const correctVoteNumbers = votes.filter(
-    (v: VoteResult) => v.voterID !== spy.id && v.suspectID === spy.id,
+    (v: VoteResult) => v.voterID !== spy.id && v.suspectID === spy.id
   ).length;
 
   const allPlayersGuessedSpy =
@@ -58,8 +58,7 @@ const ShowSpy: React.FC = () => {
 
   const messages = votes
     .filter(
-      (vote: VoteResult) =>
-        vote.voterID !== spy.id && vote.suspectID === spy.id,
+      (vote: VoteResult) => vote.voterID !== spy.id && vote.suspectID === spy.id
     )
     .map((vote: VoteResult) => {
       const voter =
@@ -103,14 +102,14 @@ const ShowSpy: React.FC = () => {
       <div className={mainStyles.description}>
         <TypewriterText
           text={`الي برا السالفة هو ${spy.username} !!`}
-          speed={40}
+          speed={25}
           isArabic={true}
           onComplete={() => setIsFirstTypewriterComplete(true)}
         />
         {isFirstTypewriterComplete && (
           <TypewriterText
             text={`${correctVoteNumbers} اشخاص صوت صح`}
-            speed={40}
+            speed={25}
             isArabic={true}
             onComplete={() => setIsSecondTypewriterComplete(true)}
           />

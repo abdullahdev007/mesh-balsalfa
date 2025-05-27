@@ -32,10 +32,10 @@ const RoleAssignment: React.FC = () => {
               online?.currentRound?.spy.id === online.playerID
                 ? SPY_DESCRIPTION
                 : INTOPIC_DESCRIPTION(
-                    online?.currentRound?.topic?.name || "No Topic",
+                    online?.currentRound?.topic?.name || "No Topic"
                   )
             }
-            speed={40}
+            speed={25}
             isArabic={true}
             onComplete={() => setIsTypewriterComplete(true)}
           />
@@ -83,7 +83,7 @@ const RoleAssignment: React.FC = () => {
         <TypewriterText
           key={`${currentPlayerIndex}-${showingRole}`}
           text={getCurrentText()}
-          speed={40}
+          speed={25}
           isArabic={true}
           onComplete={() => setIsTypewriterComplete(true)}
         />

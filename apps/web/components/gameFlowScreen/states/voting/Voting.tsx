@@ -17,7 +17,7 @@ const Voting: React.FC = () => {
   const [voterID, setVoterID] = useState<string | null>(
     mode === "online"
       ? online.playerID
-      : offline.state.players[currentIndex]?.id!,
+      : offline.state.players[currentIndex]?.id!
   );
 
   const [waitCompleteVoting, setWaitCompleteVoting] = useState<boolean>(false);
@@ -42,7 +42,7 @@ const Voting: React.FC = () => {
           setVoterID(offline.state.players[nextIndex]?.id!);
       }
     },
-    [mode, online, offline, voterID, currentIndex],
+    [mode, online, offline, voterID, currentIndex]
   );
 
   const players = mode === "online" ? online.players : offline.state.players;
@@ -56,11 +56,11 @@ const Voting: React.FC = () => {
             mode === "online"
               ? ONLINE_MESSAGE(
                   online.players.find((p) => p.id === online.playerID)
-                    ?.username!,
+                    ?.username!
                 )
               : OFFLINE_MESSAGE(offline.state.players[currentIndex]?.username!)
           }
-          speed={40}
+          speed={25}
           isArabic={true}
           onComplete={() => setIsTypewriterComplete(true)}
         />

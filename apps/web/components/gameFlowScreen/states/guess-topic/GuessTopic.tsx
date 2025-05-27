@@ -131,7 +131,7 @@ const GuessTopic: React.FC = () => {
       <TypewriterText
         text={description()}
         isArabic={true}
-        speed={40}
+        speed={25}
         className={styles.description}
         onComplete={() => setIsFirstTypewriterComplete(true)}
       />

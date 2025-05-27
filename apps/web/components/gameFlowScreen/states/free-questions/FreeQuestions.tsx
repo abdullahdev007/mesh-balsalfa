@@ -35,14 +35,14 @@ const FreeQuestions: FC = () => {
   const { online, offline, mode } = useGame();
 
   const [currentAskerID, setCurrentAskerID] = useState<string | null>(
-    mode === "online" ? online.players[0]!.id : offline.state.players[0]!.id,
+    mode === "online" ? online.players[0]!.id : offline.state.players[0]!.id
   );
   const [description, setDescription] = useState<string>(
     mode === "online"
       ? online.playerID === online.players[0]!.id
         ? ASK_OR_VOTE(online.players[0]!.username)
         : WAIT_FOR_CHOOSE(online.players[0]!.username)
-      : ASK_OR_VOTE(offline.state.players[0]!.username),
+      : ASK_OR_VOTE(offline.state.players[0]!.username)
   );
 
   const [nextAskerID, setNextAskerID] = useState<string | null>(null);
@@ -50,11 +50,11 @@ const FreeQuestions: FC = () => {
   const [actionButtonLabel, setActionButtonLabel] = useState<ActionButtonLabel>(
     mode === "offline" || online.playerID === online.players[0]!.id
       ? actionButtonLabels.startVoting
-      : actionButtonLabels.next,
+      : actionButtonLabels.next
   );
 
   const [isChooseEnabled, setIsChooseEnabled] = useState<boolean>(
-    mode === "offline" || online.playerID === online.players[0]!.id,
+    mode === "offline" || online.playerID === online.players[0]!.id
   );
 
   const handleAskQuestion = useCallback(
@@ -65,7 +65,7 @@ const FreeQuestions: FC = () => {
         offline.askFreeQuestion(currentAskerID!, targetPlayerID);
       }
     },
-    [mode, online, offline, currentAskerID],
+    [mode, online, offline, currentAskerID]
   );
 
   const handleActionButton = useCallback(() => {
@@ -97,7 +97,7 @@ const FreeQuestions: FC = () => {
             ? QUESTION_MESSAGE(askerUsername, targetUsername)
             : online.playerID === question.target.id
               ? QUESTION_TARGET_MESSAGE(askerUsername)
-              : QUESTION_WAIT_MESSAGE(askerUsername, targetUsername),
+              : QUESTION_WAIT_MESSAGE(askerUsername, targetUsername)
         );
 
         setIsChooseEnabled(false);
@@ -105,7 +105,7 @@ const FreeQuestions: FC = () => {
         setActionButtonLabel(
           isCurretAsker
             ? actionButtonLabels.completeQuestion
-            : actionButtonLabels.next,
+            : actionButtonLabels.next
         );
         setNextAskerID(question.target.id);
       }
@@ -121,12 +121,10 @@ const FreeQuestions: FC = () => {
       setDescription(
         isCurretAsker
           ? ASK_OR_VOTE(asker?.username!)
-          : WAIT_FOR_CHOOSE(asker?.username!),
+          : WAIT_FOR_CHOOSE(asker?.username!)
       );
       setActionButtonLabel(
-        isCurretAsker
-          ? actionButtonLabels.startVoting
-          : actionButtonLabels.next,
+        isCurretAsker ? actionButtonLabels.startVoting : actionButtonLabels.next
       );
     };
 
@@ -134,7 +132,7 @@ const FreeQuestions: FC = () => {
       online.on(OnlineEngineEvents.FREE_QUESTION_ASKED, handleFreeQuestion);
       online.on(
         OnlineEngineEvents.FREE_QUESTION_ASK_DONE,
-        handleQuestionAskDone,
+        handleQuestionAskDone
       );
     } else if (mode === "offline") {
       offline.on(GameEvent.FREE_QUESTION_ASKED, handleFreeQuestion);
@@ -157,7 +155,7 @@ const FreeQuestions: FC = () => {
       <div className={mainStyles.description}>
         <TypewriterText
           text={description}
-          speed={40}
+          speed={25}
           isArabic={true}
           onComplete={() => setIsTypewriterComplete(true)}
         />
