@@ -11,12 +11,20 @@ import type { GameScreenType } from "@/components/gameFlowScreen/GameFlowScreen"
 
 export default function GamePage() {
   const router = useRouter();
-  const { mode, offline, online } = useGame();
+  const {
+    mode,
+    offline,
+    online,
+    cleanupOfflineGameEngine,
+    cleanupOnlineGameEngine,
+  } = useGame();
   const [currentScreen, setCurrentScreen] =
     useState<GameScreenType>("role-assignment");
 
   useEffect(() => {
-    if (mode === null) {
+    if (mode === null) {      
+      cleanupOfflineGameEngine();
+      cleanupOnlineGameEngine();
       router.push("/");
     }
   }, [router, mode]);

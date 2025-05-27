@@ -17,6 +17,7 @@ type GameContextType = {
   username: string | null;
   setUsername: (username: string) => void;
   cleanupOfflineGameEngine: () => void;
+  cleanupOnlineGameEngine: () => void; // Added
 };
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -63,6 +64,15 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const cleanupOnlineGameEngine = () => {
+    if (gameSystems?.online) {
+      setGameSystems((prev) => ({
+        ...prev!,
+        online: new OnlineGameSystem(username || "Guest", router),
+      }));
+    }
+  };
+
   useEffect(() => {
     setGameSystems({
       online: new OnlineGameSystem(username || "Guest", router),
@@ -93,6 +103,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         username,
         setUsername: validateAndSetUsername,
         cleanupOfflineGameEngine,
+        cleanupOnlineGameEngine, // Added
       }}
     >
       {children}

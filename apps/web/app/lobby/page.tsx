@@ -26,37 +26,36 @@ const WaitingPage = () => {
 
   const [isTopicsModalOpen, setIsTopicsModalOpen] = useState(false);
 
-  const { online, offline, cleanupOfflineGameEngine, mode } = useGame();
+  const {
+    online,
+    offline,
+    cleanupOfflineGameEngine,
+    cleanupOnlineGameEngine,
+    mode,
+  } = useGame();
 
   const [selectedCategory, setSelectedCategory] = useState<TopicCategory>(
     mode === "online"
       ? online.selectedCategory
-      : (offline.state.selectedCategory ?? "animals"),
+      : (offline.state.selectedCategory ?? "animals")
   );
 
   const [players, setPlayers] = useState<Player[]>(
-    mode === "online" ? online.players : offline.state.players,
+    mode === "online" ? online.players : offline.state.players
   );
 
   const [rounds, setRounds] = useState<Round[]>(
-    mode === "online" ? online.rounds : offline.state.rounds,
+    mode === "online" ? online.rounds : offline.state.rounds
   );
 
   useEffect(() => {
-    if (mode === null) {
-      router.push("/");
+    if (mode === null) {      
+      cleanupOfflineGameEngine();
+      cleanupOnlineGameEngine();
     }
   }, [mode, router]);
 
-  useEffect(() => {    
-    if (
-      (mode !== null) && 
-      (mode === "online" && online.currentPhase !== "lobby") ||
-      (mode === "offline" && offline.state.phase !== "lobby")
-    ) {
-      router.push("/game");
-    }
-
+  useEffect(() => {
     const handleCategoryUpdate = (category: TopicCategory) => {
       setSelectedCategory(category);
       toast.success(`تم تحديث السالفة الى ${translateCategory(category)}`);
@@ -70,7 +69,7 @@ const WaitingPage = () => {
 
     const handlePlayerLeft = (player: Player) => {
       setPlayers((prevPlayers) =>
-        prevPlayers.filter((p) => p.id !== player.id),
+        prevPlayers.filter((p) => p.id !== player.id)
       );
     };
 
@@ -88,7 +87,7 @@ const WaitingPage = () => {
     if (mode === "online") {
       online.on(
         OnlineEngineEvents.TOPIC_CATEGORY_UPDATED,
-        handleCategoryUpdate,
+        handleCategoryUpdate
       );
       online.on(OnlineEngineEvents.PLAYERS_UPDATED, handlePlayersUpdate);
       online.on(OnlineEngineEvents.ROUND_STARTED, handleRoundStarted);
@@ -105,7 +104,7 @@ const WaitingPage = () => {
       if (mode === "online") {
         online.off(
           OnlineEngineEvents.TOPIC_CATEGORY_UPDATED,
-          handleCategoryUpdate,
+          handleCategoryUpdate
         );
         online.off(OnlineEngineEvents.PLAYERS_UPDATED, handlePlayersUpdate);
         online.off(OnlineEngineEvents.ROUND_STARTED, handleRoundStarted);
@@ -171,9 +170,11 @@ const WaitingPage = () => {
 
   const handleLeaveGame = async () => {
     setIsLeaveGameLoading(true);
+
     try {
       if (mode === "online") {
         await online.leaveRoom();
+        cleanupOfflineGameEngine();
       } else if (mode === "offline") {
         await cleanupOfflineGameEngine();
       }

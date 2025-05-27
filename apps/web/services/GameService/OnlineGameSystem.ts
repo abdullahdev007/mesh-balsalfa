@@ -381,6 +381,7 @@ export class OnlineGameSystem {
             response.error?.message || "فشل في مغادرة الغرفة";
           toast.error(errorMessage);
           console.error("Failed to leave room:", response.error);
+
           resolve(false);
         } else {
           this.cleanupGameEngine();
